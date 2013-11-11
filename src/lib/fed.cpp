@@ -47,8 +47,8 @@ using namespace std;
  * @param reordering Reordering flag
  * @param tau The vector with the dynamic step sizes
  */
-int fed_tau_by_process_time(float T, int M, float tau_max, bool reordering, std::vector<float> &tau)
-{
+int fed_tau_by_process_time(const float& T, const int& M, const float& tau_max,
+                            const bool& reordering, std::vector<float>& tau) {
   // All cycles have the same fraction of the stopping time
   return fed_tau_by_cycle_time(T/(float)M,tau_max,reordering,tau);
 }
@@ -66,8 +66,8 @@ int fed_tau_by_process_time(float T, int M, float tau_max, bool reordering, std:
  * @param reordering Reordering flag
  * @param tau The vector with the dynamic step sizes
  */
-int fed_tau_by_cycle_time(float t, float tau_max, bool reordering, std::vector<float> &tau)
-{
+int fed_tau_by_cycle_time(const float& t, const float& tau_max,
+                          const bool& reordering, std::vector<float> &tau) {
   int n = 0;          // Number of time steps
   float scale = 0.0;  // Ratio of t we search to maximal t
 
@@ -92,22 +92,20 @@ int fed_tau_by_cycle_time(float t, float tau_max, bool reordering, std::vector<f
  * @param reordering Reordering flag
  * @param tau The vector with the dynamic step sizes
  */
-int fed_tau_internal(int n, float scale, float tau_max, bool reordering, std::vector<float> &tau)
-{
+int fed_tau_internal(const int& n, const float& scale, const float& tau_max,
+                     const bool& reordering, std::vector<float> &tau) {
   float c = 0.0, d = 0.0;     // Time savers
-  std::vector<float> tauh;    // Helper vector for unsorted taus
+  vector<float> tauh;    // Helper vector for unsorted taus
 
-  if( n <= 0 )
-  {
+  if (n <= 0) {
     return 0;
   }
 
   // Allocate memory for the time step size
-  tau = std::vector<float>(n);
+  tau = vector<float>(n);
 
-  if( reordering )
-  {
-    tauh = std::vector<float>(n);
+  if (reordering) {
+    tauh = vector<float>(n);
   }
 
   // Compute time saver
@@ -115,16 +113,13 @@ int fed_tau_internal(int n, float scale, float tau_max, bool reordering, std::ve
   d = scale * tau_max / 2.0f;
 
   // Set up originally ordered tau vector
-  for(int k = 0; k < n; ++k)
-  {
+  for (int k = 0; k < n; ++k) {
     float h = cosf(M_PI * (2.0f * (float)k + 1.0f) * c);
 
-    if( reordering )
-    {
+    if (reordering) {
       tauh[k] = d / (h * h);
     }
-    else
-    {
+    else {
       tau[k] = d / (h * h);
     }
   }
@@ -132,8 +127,7 @@ int fed_tau_internal(int n, float scale, float tau_max, bool reordering, std::ve
   // Permute list of time steps according to chosen reordering function
   int kappa = 0, prime = 0;
 
-  if( reordering == true )
-  {
+  if (reordering == true) {
     // Choose kappa cycle with k = n/2
     // This is a heuristic. We can use Leja ordering instead!!
     kappa = n / 2;
@@ -141,17 +135,14 @@ int fed_tau_internal(int n, float scale, float tau_max, bool reordering, std::ve
     // Get modulus for permutation
     prime = n + 1;
 
-    while(!fed_is_prime_internal(prime))
-    {
+    while (!fed_is_prime_internal(prime)) {
       prime++;
     }
 
     // Perform permutation
-    for(int k = 0, l = 0; l < n; ++k, ++l)
-    {
+    for (int k = 0, l = 0; l < n; ++k, ++l) {
       int index = 0;
-      while((index = ((k+1)*kappa) % prime - 1) >= n)
-      {
+      while ((index = ((k+1)*kappa) % prime - 1) >= n) {
         k++;
       }
 
@@ -170,31 +161,25 @@ int fed_tau_internal(int n, float scale, float tau_max, bool reordering, std::ve
  * @param number Number to check if it is prime or not
  * @return true if the number is prime
  */
-bool fed_is_prime_internal(int number)
-{
+bool fed_is_prime_internal(const int& number) {
   bool is_prime = false;
 
-  if( number <= 1 )
-  {
+  if (number <= 1) {
     return false;
   }
-  else if( number == 1 || number == 2 || number == 3 || number == 5 || number == 7 )
-  {
+  else if (number == 1 || number == 2 || number == 3 || number == 5 || number == 7) {
     return true;
   }
-  else if( (number % 2) == 0 || (number % 3) == 0 || (number % 5) == 0 || (number % 7) == 0 )
-  {
+  else if ((number % 2) == 0 || (number % 3) == 0 || (number % 5) == 0 || (number % 7) == 0) {
     return false;
   }
-  else
-  {
+  else {
     is_prime = true;
     int upperLimit = sqrt(number+1.0);
     int divisor = 11;
 
-    while(divisor <= upperLimit )
-    {
-      if(number % divisor == 0)
+    while (divisor <= upperLimit ) {
+      if (number % divisor == 0)
       {
         is_prime = false;
       }

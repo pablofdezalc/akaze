@@ -125,6 +125,7 @@ public:
     void Determinant_Hessian_Parallel(std::vector<cv::KeyPoint> &kpts);
     void Find_Scale_Space_Extrema(std::vector<cv::KeyPoint> &kpts);
     void Do_Subpixel_Refinement(std::vector<cv::KeyPoint> &kpts);
+    void Feature_Suppression_Distance(std::vector<cv::KeyPoint> &kpts, const float& mdist);
 
     // Feature description methods
     void Compute_Descriptors(std::vector<cv::KeyPoint> &kpts, cv::Mat &desc);
@@ -158,7 +159,7 @@ void generateDescriptorSubsample(cv::Mat& sampleList, cv::Mat& comparisons,
                                  size_t nbits, size_t pattern_size, size_t nchannels);
 float Get_Angle(float X, float Y);
 float gaussian(float x, float y, float sig);
-void Check_Descriptor_Limits(int &x, int &y, int width, int height );
+void Check_Descriptor_Limits(int &x, int &y, const int& width, const int& height);
 int fRound(float flt);
 
 //*************************************************************************************

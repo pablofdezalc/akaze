@@ -33,8 +33,10 @@ int save_keypoints(char *outFile, const std::vector<cv::KeyPoint> &kpts, const c
 void matches2points_nndr(const std::vector<cv::KeyPoint> &train, const std::vector<cv::KeyPoint> &query,
                          const std::vector<std::vector<cv::DMatch> > &matches,
                          std::vector<cv::Point2f> &pmatches, float nndr);
-void compute_inliers_ransac(const std::vector<cv::Point2f> &matches, std::vector<cv::Point2f> &inliers, const float error, bool use_fund);
-void compute_inliers_homography(const std::vector<cv::Point2f> &matches,std::vector<cv::Point2f> &inliers, const cv::Mat &H, const float min_error);
+void compute_inliers_ransac(const std::vector<cv::Point2f> &matches, std::vector<cv::Point2f> &inliers,
+                            const float& error, const bool& use_fund);
+void compute_inliers_homography(const std::vector<cv::Point2f> &matches,std::vector<cv::Point2f> &inliers,
+                                const cv::Mat &H, const float& min_error);
 void draw_inliers(const cv::Mat &img1, const cv::Mat &img2, cv::Mat &img_com, const std::vector<cv::Point2f> &ptpairs);
 void draw_inliers(const cv::Mat &img1, const cv::Mat &img2, cv::Mat &img_com, const std::vector<cv::Point2f> &ptpairs, const int color);
 void read_homography(const char *hFile, cv::Mat &H1toN);
@@ -42,6 +44,5 @@ void show_input_options_help(int method);
 
 //*************************************************************************************
 //*************************************************************************************
-
 
 #endif

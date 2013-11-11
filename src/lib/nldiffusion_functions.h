@@ -23,12 +23,14 @@ void Image_Derivatives_Scharr(const cv::Mat &src, cv::Mat &dst, size_t xorder, s
 void PM_G1(const cv::Mat &Lx, const cv::Mat &Ly, cv::Mat &dst, const float k);
 void PM_G2(const cv::Mat &Lx, const cv::Mat &Ly, cv::Mat &dst, const float k);
 void Weickert_Diffusivity(const cv::Mat &Lx, const cv::Mat &Ly, cv::Mat &dst, const float k);
-float Compute_K_Percentile(const cv::Mat &img, float perc, float gscale, size_t nbins, size_t ksize_x, size_t ksize_y);
-void Compute_Scharr_Derivatives(const cv::Mat &src, cv::Mat &dst, const int xorder, const int yorder, const int scale);
+float Compute_K_Percentile(const cv::Mat &img, const float& perc, const float& gscale,
+                           const size_t& nbins, const size_t& ksize_x, const size_t& ksize_y);
+void Compute_Scharr_Derivatives(const cv::Mat &src, cv::Mat &dst, const int& xorder,
+                                const int& yorder, const int& scale);
 void NLD_Step_Scalar(cv::Mat &Lt, const cv::Mat &c, cv::Mat &Lstep, float stepsize);
 void Downsample_Image(const cv::Mat &src, cv::Mat &dst);
 void Halfsample_Image(const cv::Mat &src, cv::Mat &dst);
-void Compute_Deriv_Kernels(cv::OutputArray &kx_, cv::OutputArray &ky_, const int dx, const int dy, const int scale_);
+void Compute_Deriv_Kernels(cv::OutputArray &kx_, cv::OutputArray &ky_, const int& dx, const int& dy, const int& scale);
 
 //*************************************************************************************
 //*************************************************************************************

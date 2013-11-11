@@ -54,7 +54,7 @@ const float DEFAULT_SIGMA_SMOOTHING_DERIVATIVES = 1.0f;
 const float DEFAULT_KCONTRAST = .01f;
 
 // Detector Parameters
-const float DEFAULT_DETECTOR_THRESHOLD = 0.002f;           // Detector response threshold to accept point
+const float DEFAULT_DETECTOR_THRESHOLD = 0.001f;           // Detector response threshold to accept point
 const float DEFAULT_MIN_DETECTOR_THRESHOLD = 0.00001f;     // Minimum Detector response threshold to accept point
 const int DEFAULT_LDB_DESCRIPTOR_SIZE = 0;  // Use 0 for the full descriptor, or the number of bits
 const int DEFAULT_LDB_PATTERN_SIZE = 10;    // Actual patch size is 2*pattern_size*point.scale;
@@ -102,7 +102,7 @@ struct AKAZEOptions
 
   AKAZEOptions()
   {
-    //load the default options
+    // Load the default options
     soffset = DEFAULT_SCALE_OFFSET;
     omax = DEFAULT_OCTAVE_MAX;
     nsublevels = DEFAULT_NSUBLEVELS;
