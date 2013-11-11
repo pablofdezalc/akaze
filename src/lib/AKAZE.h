@@ -157,9 +157,9 @@ public:
 // Inline functions
 void generateDescriptorSubsample(cv::Mat& sampleList, cv::Mat& comparisons,
                                  size_t nbits, size_t pattern_size, size_t nchannels);
-float Get_Angle(float X, float Y);
-float gaussian(float x, float y, float sig);
-void Check_Descriptor_Limits(int &x, int &y, const int& width, const int& height);
+float get_angle(const float& x, const float& y);
+float gaussian(const float& x, const float& y, const float& sigma);
+void check_descriptor_limits(int &x, int &y, const int& width, const int& height);
 int fRound(float flt);
 
 //*************************************************************************************

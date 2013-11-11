@@ -14,6 +14,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/bin")
 set(CMAKE_BUILD_TYPE Release)
+
 # Detect c++11 support
 if(CMAKE_COMPILER_IS_GNUCXX)
    execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
@@ -107,7 +108,8 @@ install(FILES
     src/lib/nldiffusion_functions.h
     src/lib/config.h
     DESTINATION
-    /usr/local/akaze/include)
+    /usr/local/akaze/include
+)
 
 ################################
 

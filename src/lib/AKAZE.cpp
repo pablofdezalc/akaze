@@ -682,7 +682,7 @@ void AKAZE::Compute_Main_Orientation_SURF(cv::KeyPoint &kpt) {
                 resX[idx] = gweight*(*(evolution_[level].Lx.ptr<float>(iy)+ix));
                 resY[idx] = gweight*(*(evolution_[level].Ly.ptr<float>(iy)+ix));
 
-                Ang[idx] = Get_Angle(resX[idx],resY[idx]);
+                Ang[idx] = get_angle(resX[idx],resY[idx]);
                 ++idx;
             }
         }
@@ -714,7 +714,7 @@ void AKAZE::Compute_Main_Orientation_SURF(cv::KeyPoint &kpt) {
         if (sumX*sumX + sumY*sumY > max) {
             // store largest orientation
             max = sumX*sumX + sumY*sumY;
-            kpt.angle = Get_Angle(sumX, sumY);
+            kpt.angle = get_angle(sumX, sumY);
         }
     }
 }
@@ -2039,22 +2039,22 @@ void generateDescriptorSubsample(cv::Mat& sampleList, cv::Mat& comparisons, size
 /**
  * @brief This function computes the angle from the vector given by (X Y). From 0 to 2*Pi
 */
-inline float Get_Angle(float X, float Y) {
+inline float get_angle(const float& x, const float& y) {
 
-    if (X >= 0 && Y >= 0) {
-        return atanf(Y/X);
+    if (x >= 0 && y >= 0) {
+        return atanf(y/x);
     }
 
-    if (X < 0 && Y >= 0) {
-        return CV_PI - atanf(-Y/X);
+    if (x < 0 && y >= 0) {
+        return CV_PI - atanf(-y/x);
     }
 
-    if (X < 0 && Y < 0) {
-        return CV_PI + atanf(Y/X);
+    if (x < 0 && y < 0) {
+        return CV_PI + atanf(y/x);
     }
 
-    if(X >= 0 && Y < 0) {
-        return 2.0*CV_PI - atanf(-Y/X);
+    if(x >= 0 && y < 0) {
+        return 2.0*CV_PI - atanf(-y/x);
     }
 
     return 0;
@@ -2069,9 +2069,9 @@ inline float Get_Angle(float X, float Y) {
  * @param y Y Position
  * @param sig Standard Deviation
 */
-inline float gaussian(float x, float y, float sig) {
+inline float gaussian(const float& x, const float& y, const float& sigma) {
 
-    return expf(-(x*x+y*y)/(2.0f*sig*sig));
+    return expf(-(x*x+y*y)/(2.0f*sigma*sigma));
 }
 
 //**************************************************************************************
@@ -2084,7 +2084,8 @@ inline float gaussian(float x, float y, float sig) {
  * @param width Image width
  * @param height Image height
 */
-inline void Check_Descriptor_Limits(int &x, int &y, const int& width, const int& height) {
+inline void check_descriptor_limits(int &x, int &y, const int& width, const int& height) {
+
     if (x < 0) {
         x = 0;
     }
