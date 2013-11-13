@@ -456,7 +456,6 @@ void read_homography(const char *hFile, cv::Mat& H1toN) {
   float h31 = 0.0, h32 = 0.0, h33 = 0.0;
   int  tmp_buf_size = 256;
   char tmp_buf[tmp_buf_size];
-  string tmp_string;
 
   // Allocate memory for the OpenCV matrices
   H1toN = Mat::zeros(3,3,CV_32FC1);
