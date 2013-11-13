@@ -100,7 +100,7 @@ TARGET_LINK_LIBRARIES(
   AKAZE
 )
 
-install(TARGETS AKAZE DESTINATION /usr/local/akaze/lib)
+install(TARGETS AKAZE DESTINATION /usr/local/lib/)
 install(FILES
     src/lib/AKAZE.h
     src/lib/fed.h
@@ -108,7 +108,7 @@ install(FILES
     src/lib/nldiffusion_functions.h
     src/lib/config.h
     DESTINATION
-    /usr/local/akaze/include
+    /usr/local/include/akaze/
 )
 
 ################################

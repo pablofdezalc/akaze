@@ -6,7 +6,7 @@ Date: 16-09-2013
 
 ---------------------------------------------------
 
-Version: 1.0.0
+Version: 1.0.1
 Changes:
 
 - Initial Release
@@ -34,10 +34,12 @@ You will also need doxygen in case you need to generate the documentation
 
 Tested compilers
 - GCC 4.2-4.7
+- Clang 5.0 (from Xcode 5)
 
 Tested systems:
 - Ubuntu 11.10, 12.04, 12.10
 - Kubuntu 10.04
+- Mac OS X 10.8
 
 Getting Started
 ---------------------------------------------------
