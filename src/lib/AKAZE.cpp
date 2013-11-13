@@ -249,7 +249,7 @@ void AKAZE::Compute_Multiscale_Derivatives(void) {
     #pragma omp parallel for
     #endif
     for (size_t i = 0; i < evolution_.size(); i++) {
-        float ratio = pow(2,evolution_[i].octave);
+        float ratio = powf(2.0f,evolution_[i].octave);
         int sigma_size_ = fRound(evolution_[i].esigma*factor_size_/ratio);
 
         Compute_Scharr_Derivatives(evolution_[i].Lsmooth,evolution_[i].Lx,1,0,sigma_size_);
