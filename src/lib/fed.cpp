@@ -29,6 +29,7 @@
  *
 */
 
+#define _USE_MATH_DEFINES
 #include "fed.h"
 
 using namespace std;

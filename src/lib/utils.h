@@ -14,7 +14,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <stdint.h>
 #include <cstdlib>
 #include <vector>
 #include <fstream>

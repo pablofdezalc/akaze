@@ -408,7 +408,7 @@ void compute_derivative_kernels(cv::OutputArray& kx_, cv::OutputArray& ky_,
   for (int k = 0; k < 2; k++) {
     Mat* kernel = k == 0 ? &kx : &ky;
     int order = k == 0 ? dx : dy;
-    float kerI[ksize];
+    float kerI[1000];
 
     for (int t = 0; t<ksize; t++) {
       kerI[t] = 0;
