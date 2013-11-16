@@ -21,6 +21,7 @@
  */
 
 #include "utils.h"
+#include <iomanip>
 
 // Namespaces
 using namespace std;
@@ -494,6 +495,16 @@ void read_homography(const char *hFile, cv::Mat& H1toN) {
 //*************************************************************************************
 //*************************************************************************************
 
+const size_t length = string("--descriptor_channels").size() + 2;
+static inline std::ostream& cout_help()
+{ cout << setw(length); return cout; }
+
+static inline std::string toUpper(std::string s)
+{
+  std::transform(s.begin(), s.end(), s.begin(), ::toupper);
+  return s;
+}
+
 /**
  * @brief This function shows the possible command line configuration options
  */
@@ -502,31 +513,59 @@ void show_input_options_help(const int& example) {
   fflush(stdout);
 
   cout << "A-KAZE Features" << endl;
-  cout << "************************************************" << endl;
-  cout << "For running the program you need to type in the command line the following arguments: " << endl;
-
+  cout << "Usage: ";
   if (example == 0) {
-    cout << "./akaze_features img.jpg options" << endl;
+    cout << "./akaze_features -i img.jpg [options]" << endl;
   }
   else if (example == 1) {
-    cout << "./akaze_match img1.jpg img2.pgm homography.txt options" << endl;
+    cout << "./akaze_match img1.jpg img2.pgm homography.txt [options]" << endl;
   }
   else if (example == 2) {
-    cout << "./akaze_compare img1.jpg img2.pgm homography.txt options" << endl;
+    cout << "./akaze_compare img1.jpg img2.pgm homography.txt [options]" << endl;
   }
-
-  cout << "The options are not mandatory. In case you do not specify additional options, default arguments will be used" << endl << endl;
-  cout << "Here is a description of the additional options: " << endl;
-  cout << "--verbose " << "\t\t if verbosity is required" << endl;
-  cout << "--help" << "\t\t for showing the command line options" << endl;
-  cout << "--soffset" << "\t\t the base scale offset (sigma units)" << endl;
-  cout << "--omax" << "\t\t maximum octave evolution of the image 2^sigma (coarsest scale)" << endl;
-  cout << "--nsublevels" << "\t\t number of sublevels per octave" << endl;
-  cout << "--diffusivity" << "\t\t diffusivity function 0 -> PM 1, 1 -> PM 2, 2 -> Weickert" << endl;
-  cout << "--dthreshold" << "\t\t Feature detector threshold response for accepting points (0.001 can be a good value)" << endl;
-  cout << "--descriptor" << "\t\t Descriptor Type 0 -> SURF_UPRIGHT, 1 -> SURF, 2 -> M-SURF_UPRIGHT, 3 -> M-SURF, 4 -> M-LDB_UPRIGHT, 5 -> M-LDB" << endl;
-  cout << "--descriptor_channels " <<"\t\t Descriptor Channels for M-LDB (valid values: 1, 2 (intensity+grdient magnitude), 3(intensity + X and Y gradients" <<endl;
-  cout << "--descriptor_size" << "\t\t Descriptor size for M-LDB in bits. 0 means the full length descriptor (486)!!" << endl;
-  cout << "--show_results" << "\t\t 1 in case we want to show detection results. 0 otherwise" << endl;
+  
   cout << endl;
+  cout_help() << "Options below are not mandatory. Unless specified, default arguments are used." << endl << endl;  
+  // Justify on the left
+  cout << left;
+  // Generalities
+  cout_help() << "--help" << "Show the command line options" << endl;
+  cout_help() << "--verbose " << "Verbosity is required" << endl;
+  cout_help() << endl;
+  // Scale-space parameters
+  cout_help() << "--soffset" << "Base scale offset (sigma units)" << endl;
+  cout_help() << "--omax" << "Maximum octave of image evolution" << endl;
+  cout_help() << "--nsublevels" << "Number of sublevels per octave" << endl;
+  cout_help() << "--diffusivity" << "Diffusivity function. Possible values:" << endl;
+  cout_help() << " " << "0 -> Perona-Malik, g1 = exp(-|dL|^2/k^2)" << endl;
+  cout_help() << " " << "1 -> Perona-Malik, g2 = 1 / (1 + dL^2 / k^2)" << endl;
+  cout_help() << " " << "2 -> Weickert diffusivity" << endl;
+  cout_help() << " " << "3 -> Charbonnier diffusivity" << endl;
+  cout_help() << endl;
+  // Feature detection parameters.
+  cout_help() << "--dthreshold" << "Feature detector threshold response for keypoints" << endl;
+  cout_help() << " " << "(0.001 can be a good value)" << endl;
+  cout_help() << endl;
+  // Descriptor parameters.
+  cout_help() << "--descriptor" << "Descriptor Type. Possible values:" << endl;
+  cout_help() << " " << "0 -> SURF_UPRIGHT" << endl;
+  cout_help() << " " << "1 -> SURF" << endl;
+  cout_help() << " " << "2 -> M-SURF_UPRIGHT," << endl;
+  cout_help() << " " << "3 -> M-SURF" << endl;
+  cout_help() << " " << "4 -> M-LDB_UPRIGHT" << endl;
+  cout_help() << " " << "5 -> M-LDB" << endl;
+  
+  cout_help() << "--descriptor_channels " << "Descriptor Channels for M-LDB. Valid values: " << endl;
+  cout_help() << " " << "1 -> intensity" << endl;
+  cout_help() << " " << "2 -> intensity + gradient magnitude" << endl;
+  cout_help() << " " << "3 -> intensity + X and Y gradients" <<endl;
+  
+  cout_help() << "--descriptor_size" << "Descriptor size for M-LDB in bits." << endl;
+  cout_help() << " " << "0: means the full length descriptor (486)!!" << endl;
+  cout_help() << endl;
+  // Save results?
+  cout_help() << "--show_results" << "Possible values below:" << endl;
+  cout_help() << " " << "1 -> show detection results." << endl;
+  cout_help() << " " << "0 -> don't show detection results" << endl;
+  cout_help() << endl;
 }

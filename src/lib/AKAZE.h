@@ -155,6 +155,18 @@ public:
 //*************************************************************************************
 
 // Inline functions
+/**
+ * @brief This function sets default parameters for the A-KAZE detector.
+ * @param options AKAZE options
+ */
+void setDefaultAKAZEOptions(AKAZEOptions& options);
+/**
+ * @brief This function prints default parameters for the A-KAZE detector.
+ * @param options AKAZE options
+ */
+void printAKAZEOptions(const AKAZEOptions& options);
+
+// Inline functions
 void generateDescriptorSubsample(cv::Mat& sampleList, cv::Mat& comparisons,
                                  size_t nbits, size_t pattern_size, size_t nchannels);
 float get_angle(const float& x, const float& y);

@@ -21,6 +21,7 @@
  */
 
 #include "AKAZE.h"
+#include <iomanip>
 
 using namespace std;
 using namespace cv;
@@ -1918,6 +1919,49 @@ void AKAZE::Show_Computation_Times(void) {
 
 //*************************************************************************************
 //*************************************************************************************
+
+void setDefaultAKAZEOptions(AKAZEOptions& options)
+{
+  // Load the default options
+  options.soffset = DEFAULT_SCALE_OFFSET;
+  options.omax = DEFAULT_OCTAVE_MAX;
+  options.nsublevels = DEFAULT_NSUBLEVELS;
+  options.dthreshold = DEFAULT_DETECTOR_THRESHOLD;
+  options.diffusivity = DEFAULT_DIFFUSIVITY_TYPE;
+  options.descriptor = DEFAULT_DESCRIPTOR;
+  options.descriptor_size = DEFAULT_LDB_DESCRIPTOR_SIZE;
+  options.descriptor_channels = DEFAULT_LDB_CHANNELS;
+  options.descriptor_pattern_size = DEFAULT_LDB_PATTERN_SIZE;
+  options.sderivatives = DEFAULT_SIGMA_SMOOTHING_DERIVATIVES;
+  options.save_scale_space = DEFAULT_SAVE_SCALE_SPACE;
+  options.save_keypoints = DEFAULT_SAVE_KEYPOINTS;
+  options.verbosity = DEFAULT_VERBOSITY;
+}
+
+void printAKAZEOptions(const AKAZEOptions& akaze_options)
+{
+  cout << left;
+#define CHECK_AKAZE_OPTION(option) \
+  cout << setw(33) << #option << " =  " << option << endl
+  // Scale-space parameters.
+  CHECK_AKAZE_OPTION(akaze_options.omax);
+  CHECK_AKAZE_OPTION(akaze_options.nsublevels);
+  CHECK_AKAZE_OPTION(akaze_options.soffset);
+  CHECK_AKAZE_OPTION(akaze_options.sderivatives);
+  CHECK_AKAZE_OPTION(akaze_options.diffusivity);
+  // Detection parameters.
+  CHECK_AKAZE_OPTION(akaze_options.dthreshold);
+  // Descriptor parameters.
+  CHECK_AKAZE_OPTION(akaze_options.descriptor);
+  CHECK_AKAZE_OPTION(akaze_options.descriptor_channels);
+  CHECK_AKAZE_OPTION(akaze_options.descriptor_size);
+  // Save scale-space
+  CHECK_AKAZE_OPTION(akaze_options.save_scale_space);
+  // Verbose option for debug.
+  CHECK_AKAZE_OPTION(akaze_options.verbosity);
+
+#undef CHECK_AKAZE_OPTIONS
+}
 
 /**
  * @brief This function computes a (quasi-random) list of bits to be taken
