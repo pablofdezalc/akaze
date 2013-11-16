@@ -18,6 +18,10 @@
  * accelerated nonlinear scale space
  * @date Sep 16, 2013
  * @author Pablo F. Alcantarilla, Jesus Nuevo
+ *
+ * Modification:
+ * 16/11/2013: David Ok (david.ok8@gmail.com)
+ *
  */
 
 #include "akaze_features.h"
@@ -30,7 +34,6 @@ int main( int argc, char *argv[] )
 {
   // Variables
   AKAZEOptions options;
-  setDefaultAKAZEOptions(options);
   string image_path, key_path;
 
   // Variable for computation times.
@@ -40,7 +43,10 @@ int main( int argc, char *argv[] )
   if(!parse_input_options(options, image_path, key_path, argc, argv))
     return -1;
   if (options.verbosity)
-    printAKAZEOptions(options);
+  {
+    cout << "Check AKAZE options:" << endl;
+    cout << options << endl;
+  }
 
   // Try to read the image and if necessary convert to grayscale.
   Mat img = imread(image_path, 0);

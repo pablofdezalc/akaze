@@ -14,6 +14,7 @@
 #include <vector>
 #include <math.h>
 #include <bitset>
+#include <iomanip>
 
 // OpenCV Includes
 #include <opencv2/opencv.hpp>
@@ -116,6 +117,34 @@ struct AKAZEOptions
     save_scale_space = DEFAULT_SAVE_SCALE_SPACE;
     save_keypoints = DEFAULT_SAVE_KEYPOINTS;
     verbosity = DEFAULT_VERBOSITY;
+  }
+
+  friend std::ostream& operator<<(std::ostream& os,
+                                  const AKAZEOptions& akaze_options)
+  {
+    os << std::left;
+#define CHECK_AKAZE_OPTION(option) \
+    os << std::setw(33) << #option << " =  " << option << std::endl
+
+    // Scale-space parameters.
+    CHECK_AKAZE_OPTION(akaze_options.omax);
+    CHECK_AKAZE_OPTION(akaze_options.nsublevels);
+    CHECK_AKAZE_OPTION(akaze_options.soffset);
+    CHECK_AKAZE_OPTION(akaze_options.sderivatives);
+    CHECK_AKAZE_OPTION(akaze_options.diffusivity);
+    // Detection parameters.
+    CHECK_AKAZE_OPTION(akaze_options.dthreshold);
+    // Descriptor parameters.
+    CHECK_AKAZE_OPTION(akaze_options.descriptor);
+    CHECK_AKAZE_OPTION(akaze_options.descriptor_channels);
+    CHECK_AKAZE_OPTION(akaze_options.descriptor_size);
+    // Save scale-space
+    CHECK_AKAZE_OPTION(akaze_options.save_scale_space);
+    // Verbose option for debug.
+    CHECK_AKAZE_OPTION(akaze_options.verbosity);
+#undef CHECK_AKAZE_OPTIONS
+
+    return os;
   }
 };
 
