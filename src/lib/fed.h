@@ -6,10 +6,6 @@
 
 // Includes
 #include <iostream>
-#include <stdlib.h>
-#include <stdio.h>
-#include <cstdlib>
-#include <math.h>
 #include <vector>
 
 //*************************************************************************************

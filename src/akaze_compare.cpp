@@ -17,30 +17,25 @@
  * @brief Main program for matching two images with AKAZE features
  * @date Sep 15, 2013
  * @author Pablo F. Alcantarilla
+ *
+ * Modification:
+ * 16/11/2013: David Ok (david.ok8@gmail.com)
+ *
  */
 
 #include "akaze_compare.h"
+#include "cmdLine.h"
 
-// Namespaces
 using namespace std;
 using namespace cv;
 
-// Some image matching options
-const bool COMPUTE_HOMOGRAPHY = false;	// 0->Use ground truth homography, 1->Estimate homography with RANSAC
-const float MIN_H_ERROR = 2.50f;	// Maximum error in pixels to accept an inlier
-const float DRATIO = 0.80f;		// NNDR Matching value
-
-//*************************************************************************************
-//*************************************************************************************
-
-/** Main Function 																	 */
 int main( int argc, char *argv[]) {
 
   // Variables
   AKAZEOptions options;
   Mat img1, img1_32, img2, img2_32;
-  char img_name1[NMAX_CHAR], img_name2[NMAX_CHAR], hfile[NMAX_CHAR];
-  char rfile[NMAX_CHAR];
+  string img_name1, img_name2, hfile;
+  string rfile;
   double t1 = 0.0, t2 = 0.0;
 
   // ORB variables
@@ -81,7 +76,7 @@ int main( int argc, char *argv[]) {
   Mat HG;
 
   // Parse the input command line options
-  if (parse_input_options(options,img_name1,img_name2,hfile,rfile,argc,argv)) {
+  if (!parse_input_options(options,img_name1,img_name2,hfile,rfile,argc,argv)) {
     return -1;
   }
 
@@ -285,188 +280,54 @@ int main( int argc, char *argv[]) {
   waitKey(0);
 }
 
-//*************************************************************************************
-//*************************************************************************************
+bool parse_input_options(AKAZEOptions &options,
+                        std::string& img_name1, std::string& img_name2,
+                        std::string& hom, std::string& kfile,
+                        int argc, char *argv[])
+{
+  // Create command line options.
+  CmdLine cmdLine;
+  cmdLine.add(make_switch('h', "help"));
+  // Verbose option for debug.
+  cmdLine.add(make_option('v', options.verbosity, "verbose"));
+  // Image file name.
+  cmdLine.add(make_option('L', img_name1, "left image, i.e. path of image 1"));
+  cmdLine.add(make_option('R', img_name2, "right image, i.e. path of image 2"));
+  cmdLine.add(make_option('H', hom, "ground truth homography"));
+  // Scale-space parameters.
+  cmdLine.add(make_option('O', options.omax, "omax"));
+  cmdLine.add(make_option('S', options.nsublevels, "nsublevels"));
+  cmdLine.add(make_option('s', options.soffset, "soffset"));
+  cmdLine.add(make_option('d', options.sderivatives, "sderivatives"));
+  cmdLine.add(make_option('g', options.diffusivity, "diffusivity"));
+  // Detection parameters.
+  cmdLine.add(make_option('a', options.dthreshold, "dthreshold"));
+  cmdLine.add(make_option('b', options.dthreshold2, "dthreshold2")); // ?????
+  // Descriptor parameters.
+  cmdLine.add(make_option('D', options.descriptor, "descriptor"));
+  cmdLine.add(make_option('C', options.descriptor_channels, "descriptor_channels"));
+  cmdLine.add(make_option('F', options.descriptor_size, "descriptor_size"));
+  // Save the keypoints.
+  cmdLine.add(make_option('o', kfile, "output"));
+  // Save scale-space
+  cmdLine.add(make_option('w', options.save_scale_space, "save_scale_space"));
 
-/**
- * @brief This function parses the command line arguments for setting KAZE parameters
- * and image matching between two input images
- * @param options Structure that contains KAZE settings
- * @param img_name1 Name of the first input image
- * @param img_name2 Name of the second input image
- * @param hom Name of the file that contains a ground truth homography
- * @param kfile Name of the file where the keypoints where be stored
- */
-int parse_input_options(AKAZEOptions &options, char *img_name1, char *img_name2, char *hom,
-                        char *kfile, int argc, char *argv[]) {
+  // Try to process
+  try
+  {
+    if (argc == 1)
+      throw std::string("Invalid command line parameter.");
 
-  // If there is only one argument return
-  if (argc == 1) {
+    cmdLine.process(argc, argv);
+
+    if (!cmdLine.used('L') || !cmdLine.used('R') || !cmdLine.used('H'))
+      throw std::string("Invalid command line parameter.");
+  }
+  catch(const std::string& s)
+  {
     show_input_options_help(2);
-    return -1;
-  }
-  // Set the options from the command line
-  else if (argc >= 2) {
-    options = AKAZEOptions();
-
-    strcpy(img_name1,argv[1]);
-    strcpy(img_name2,argv[2]);
-    strcpy(hom,argv[3]);
-    strcpy(kfile,"./results.txt");
-
-    for (int i = 1; i < argc; i++) {
-      if (!strcmp(argv[i],"--soffset")) {
-        i = i+1;
-        if (i >= argc) {
-          cout << "Error introducing input options!!" << endl;
-          return -1;
-        }
-        else {
-          options.soffset = atof(argv[i]);
-        }
-      }
-      else if (!strcmp(argv[i],"--omax")) {
-        i = i+1;
-        if (i >= argc) {
-          cout << "Error introducing input options!!" << endl;
-          return -1;
-        }
-        else {
-          options.omax = atof(argv[i]);
-        }
-      }
-      else if (!strcmp(argv[i],"--dthreshold")) {
-        i = i+1;
-        if (i >= argc) {
-          cout << "Error introducing input options!!" << endl;
-          return -1;
-        }
-        else {
-          options.dthreshold = atof(argv[i]);
-        }
-      }
-      else if (!strcmp(argv[i],"--dthreshold2")) {
-        i = i+1;
-        if (i >= argc) {
-          cout << "Error introducing input options!!" << endl;
-          return -1;
-        }
-        else {
-          options.dthreshold2 = atof(argv[i]);
-        }
-      }
-      else if (!strcmp(argv[i],"--sderivatives")) {
-        i = i+1;
-        if (i >= argc) {
-          cout << "Error introducing input options!!" << endl;
-          return -1;
-        }
-        else {
-          options.sderivatives = atof(argv[i]);
-        }
-      }
-      else if (!strcmp(argv[i],"--nsublevels")) {
-        i = i+1;
-        if (i >= argc) {
-          cout << "Error introducing input options!!" << endl;
-          return -1;
-        }
-        else {
-          options.nsublevels = atoi(argv[i]);
-        }
-      }
-      else if (!strcmp(argv[i],"--diffusivity")) {
-        i = i+1;
-        if (i >= argc) {
-          cout << "Error introducing input options!!" << endl;
-          return -1;
-        }
-        else {
-          options.diffusivity = atoi(argv[i]);
-        }
-      }
-      else if (!strcmp(argv[i],"--descriptor")) {
-        i = i+1;
-        if (i >= argc) {
-          cout << "Error introducing input options!!" << endl;
-          return -1;
-        }
-        else {
-          options.descriptor = atoi(argv[i]);
-
-          if (options.descriptor < 0 || options.descriptor > MLDB) {
-            options.descriptor = MLDB;
-          }
-        }
-      }
-      else if (!strcmp(argv[i],"--descriptor_channels")) {
-        i = i+1;
-        if(i >= argc) {
-          cout << "Error introducing input options!!" << endl;
-          return -1;
-        }
-        else {
-          options.descriptor_channels = atoi(argv[i]);
-
-          if (options.descriptor_channels <= 0 || options.descriptor_channels > 3) {
-            options.descriptor_channels = 3;
-          }
-        }
-      }
-      else if (!strcmp(argv[i],"--descriptor_size")) {
-        i = i+1;
-        if (i >= argc) {
-          cout << "Error introducing input options!!" << endl;
-          return -1;
-        }
-        else {
-          options.descriptor_size = atoi(argv[i]);
-
-          if (options.descriptor_size < 0) {
-            options.descriptor_size = 0;
-          }
-        }
-      }
-      else if (!strcmp(argv[i],"--save_scale_space")) {
-        i = i+1;
-        if (i >= argc) {
-          cout << "Error introducing input options!!" << endl;
-          return -1;
-        }
-        else {
-          options.save_scale_space = (bool)atoi(argv[i]);
-        }
-      }
-      else if (!strcmp(argv[i],"--kfile")) {
-        i = i+1;
-        if (i >= argc) {
-          cout << "Error introducing input options!!" << endl;
-          return -1;
-        }
-        else {
-          strcpy(kfile,argv[i]);
-        }
-      }
-      else if (!strcmp(argv[i],"--verbose")) {
-        options.verbosity = true;
-      }
-      else if (!strcmp(argv[i],"--help")) {
-        // Show the help!!
-        show_input_options_help(2);
-        return -1;
-      }
-      else if (!strncmp(argv[i],"--",2))
-        cout << "Unknown command "<<argv[i] << endl;
-    }
-  }
-  else {
-    cout << "Error introducing input options!!" << endl;
-
-    // Show the help!!
-    show_input_options_help(2);
-    return -1;
+    return false;
   }
 
-  return 0;
+  return true;
 }
-

@@ -21,7 +21,6 @@
  */
 
 #include "AKAZE.h"
-#include <iomanip>
 
 using namespace std;
 using namespace cv;
@@ -1864,12 +1863,12 @@ void AKAZE::Get_Upright_MLDB_Descriptor_Subset(const cv::KeyPoint &kpt, unsigned
 void AKAZE::Save_Scale_Space(void) {
 
   cv::Mat img_aux;
-  char cad[NMAX_CHAR];
+  string cad;
 
   for (size_t i = 0; i < evolution_.size(); i++) {
     convert_scale(evolution_[i].Lt);
     evolution_[i].Lt.convertTo(img_aux,CV_8U,255.0,0);
-    sprintf(cad,"../output/evolution%02d.jpg",(int)i);
+    cad = "../output/evolution_" + to_formatted_string(i, 2) + ".jpg";
     imwrite(cad,img_aux);
   }
 }
@@ -1884,7 +1883,7 @@ void AKAZE::Save_Scale_Space(void) {
 void AKAZE::Save_Detector_Responses(void) {
 
   Mat img_aux;
-  char cad[NMAX_CHAR];
+  string cad;
   float ttime = 0.0;
   int nimgs = 0;
 
@@ -1893,7 +1892,7 @@ void AKAZE::Save_Detector_Responses(void) {
     if (ttime > 0) {
       convert_scale(evolution_[i].Ldet);
       evolution_[i].Ldet.convertTo(img_aux,CV_8U,255.0,0);
-      sprintf(cad,"../../output/images/detector_%02d.jpg",nimgs);
+      cad = "../output/images/detector_" + to_formatted_string(nimgs, 2) + ".jpg";
       imwrite(cad,img_aux);
       nimgs++;
     } // if ttime

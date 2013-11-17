@@ -21,7 +21,6 @@
  */
 
 #include "utils.h"
-#include <iomanip>
 
 // Namespaces
 using namespace std;
@@ -148,8 +147,8 @@ void draw_keypoints(cv::Mat &img, const std::vector<cv::KeyPoint> &kpts) {
  * @param desc Matrix that contains the extracted descriptors
  * @param save_desc Set to 1 if we want to save the descriptors
  */
-int save_keypoints(const char *outFile, const std::vector<cv::KeyPoint>& kpts,
-                   const cv::Mat& desc, const bool& save_desc) {
+int save_keypoints(const string& outFile, const std::vector<cv::KeyPoint>& kpts,
+                   const cv::Mat& desc, bool save_desc) {
 
   int nkpts = 0, dsize = 0;
   float sc = 0.0;
@@ -157,17 +156,16 @@ int save_keypoints(const char *outFile, const std::vector<cv::KeyPoint>& kpts,
   nkpts = (int)(kpts.size());
   dsize = (int)(desc.cols);
 
-  ofstream ipfile(outFile);
+  ofstream ipfile(outFile.c_str());
 
   if (!ipfile) {
     cerr << "Couldn't open file '" << outFile << "'!" << endl;
     return -1;
   }
 
-  if (save_desc == false) {
+  if (!save_desc) {
     ipfile << 1 << endl << nkpts << endl;
-  }
-  else {
+  } else {
     ipfile << dsize << endl << nkpts << endl;
   }
 
@@ -219,7 +217,7 @@ int save_keypoints(const char *outFile, const std::vector<cv::KeyPoint>& kpts,
 void matches2points_nndr(const std::vector<cv::KeyPoint>& train,
                          const std::vector<cv::KeyPoint>& query,
                          const std::vector<std::vector<cv::DMatch> >& matches,
-                         std::vector<cv::Point2f>& pmatches, const float& nndr) {
+                         std::vector<cv::Point2f>& pmatches, float nndr) {
 
   float dist1 = 0.0, dist2 = 0.0;
   for (size_t i = 0; i < matches.size(); i++) {
@@ -247,7 +245,7 @@ void matches2points_nndr(const std::vector<cv::KeyPoint>& train,
  */
 void compute_inliers_ransac(const std::vector<cv::Point2f> &matches,
                             std::vector<cv::Point2f> &inliers,
-                            const float& error, const bool& use_fund) {
+                            const float& error, bool use_fund) {
 
   vector<Point2f> points1, points2;
   Mat H = Mat::zeros(3,3,CV_32F);
@@ -286,7 +284,7 @@ void compute_inliers_ransac(const std::vector<cv::Point2f> &matches,
  */
 void compute_inliers_homography(const std::vector<cv::Point2f>& matches,
                                 std::vector<cv::Point2f>& inliers, const cv::Mat& H,
-                                const float& min_error) {
+                                float min_error) {
 
   float h11 = 0.0, h12 = 0.0, h13 = 0.0;
   float h21 = 0.0, h22 = 0.0, h23 = 0.0;
@@ -391,7 +389,7 @@ void draw_inliers(const cv::Mat& img1, const cv::Mat& img2, cv::Mat& img_com,
  * @param color The color for each method
  */
 void draw_inliers(const cv::Mat& img1, const cv::Mat& img2, cv::Mat& img_com,
-                  const std::vector<cv::Point2f>& ptpairs, const int& color) {
+                  const std::vector<cv::Point2f>& ptpairs, int color) {
 
   int x1 = 0, y1 = 0, x2 = 0, y2 = 0;
   float rows1 = 0.0, cols1 = 0.0;
@@ -450,7 +448,7 @@ void draw_inliers(const cv::Mat& img1, const cv::Mat& img2, cv::Mat& img_com,
  * @param calib_file Name of the txt file that contains the ground truth data
  * @param H1toN Matrix to store the ground truth homography
  */
-void read_homography(const char *hFile, cv::Mat& H1toN) {
+void read_homography(const string& hFile, cv::Mat& H1toN) {
 
   float h11 = 0.0, h12 = 0.0, h13 = 0.0;
   float h21 = 0.0, h22 = 0.0, h23 = 0.0;
@@ -508,7 +506,7 @@ static inline std::string toUpper(std::string s)
 /**
  * @brief This function shows the possible command line configuration options
  */
-void show_input_options_help(const int& example) {
+void show_input_options_help(int example) {
 
   fflush(stdout);
 

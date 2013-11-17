@@ -9,9 +9,7 @@
 
 // OpenMP Includes
 #ifdef _OPENMP
-#include <omp.h>
-#else
-#define omp_get_thread_num() 0
+# include <omp.h>
 #endif
 
 //*************************************************************************************

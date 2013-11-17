@@ -1,46 +1,31 @@
-
 #ifndef _CONFIG_H_
 #define _CONFIG_H_
 
-//******************************************************************************
-//******************************************************************************
-
-// System Includes
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <cstdlib>
+// STL
 #include <string>
 #include <vector>
-#include <math.h>
+#include <cmath>
 #include <bitset>
 #include <iomanip>
-
-// OpenCV Includes
+// OpenCV
 #include <opencv2/opencv.hpp>
 #include <opencv2/features2d/features2d.hpp>
-
-// OpenMP Includes
+// OpenMP
 #ifdef _OPENMP
-   #include <omp.h>
-#else
-   #define omp_get_thread_num() 0
+# include <omp.h>
 #endif
-
-//*************************************************************************************
-//*************************************************************************************
-
-#define NMAX_CHAR 400
 
 // Lookup table for 2d gaussian (sigma = 2.5) where (0,0) is top left and (6,6) is bottom right
 const float gauss25[7][7] = {
-  {0.02546481,	0.02350698,	0.01849125,	0.01239505,	0.00708017,	0.00344629,	0.00142946},
-  {0.02350698,	0.02169968,	0.01706957,	0.01144208,	0.00653582,	0.00318132,	0.00131956},
-  {0.01849125,	0.01706957,	0.01342740,	0.00900066,	0.00514126,	0.00250252,	0.00103800},
-  {0.01239505,	0.01144208,	0.00900066,	0.00603332,	0.00344629,	0.00167749,	0.00069579},
-  {0.00708017,	0.00653582,	0.00514126,	0.00344629,	0.00196855,	0.00095820,	0.00039744},
-  {0.00344629,	0.00318132,	0.00250252,	0.00167749,	0.00095820,	0.00046640,	0.00019346},
-  {0.00142946,	0.00131956,	0.00103800,	0.00069579,	0.00039744,	0.00019346,	0.00008024}};
+  {0.02546481f,	0.02350698f,	0.01849125f,	0.01239505f,	0.00708017f,	0.00344629f,	0.00142946f},
+  {0.02350698f,	0.02169968f,	0.01706957f,	0.01144208f,	0.00653582f,	0.00318132f,	0.00131956f},
+  {0.01849125f,	0.01706957f,	0.01342740f,	0.00900066f,	0.00514126f,	0.00250252f,	0.00103800f},
+  {0.01239505f,	0.01144208f,	0.00900066f,	0.00603332f,	0.00344629f,	0.00167749f,	0.00069579f},
+  {0.00708017f,	0.00653582f,	0.00514126f,	0.00344629f,	0.00196855f,	0.00095820f,	0.00039744f},
+  {0.00344629f,	0.00318132f,	0.00250252f,	0.00167749f,	0.00095820f,	0.00046640f,	0.00019346f},
+  {0.00142946f,	0.00131956f,	0.00103800f,	0.00069579f,	0.00039744f,	0.00019346f,	0.00008024f}
+};
+
 
 // Scale Space parameters
 const float DEFAULT_SCALE_OFFSET = 1.60f;    // Base scale offset (sigma units)
@@ -53,6 +38,7 @@ const float KCONTRAST_PERCENTILE = 0.7f;
 const int KCONTRAST_NBINS = 300;
 const float DEFAULT_SIGMA_SMOOTHING_DERIVATIVES = 1.0f;
 const float DEFAULT_KCONTRAST = .01f;
+
 
 // Detector Parameters
 const float DEFAULT_DETECTOR_THRESHOLD = 0.001f;           // Detector response threshold to accept point
@@ -164,11 +150,5 @@ struct tevolution
 	int sigma_size;	// Integer sigma. For computing the feature detector responses
 };
 
-//*************************************************************************************
-//*************************************************************************************
 
 #endif
-
-
-
-

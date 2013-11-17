@@ -21,14 +21,14 @@ def extract_AKAZE_features(imagePath):
 
 def match_AKAZE_features(imagePath1, imagePath2, gdTruthHomography):
   command = " ".join(
-    [programs[1], ' ', imagePath1, ' ', imagePath2, ' ', gdTruthHomography] )
+    [programs[1], ' -L ', imagePath1, ' -R ', imagePath2, ' -H ', gdTruthHomography] )
   p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   output, errors = p.communicate()
   print(output)
 
 def compare_AKAZE_BRISK_ORB(imagePath1, imagePath2, gdTruthHomography):
   command = " ".join(
-    [programs[2], ' ', imagePath1, ' ', imagePath2, ' ', gdTruthHomography] )
+    [programs[2], ' -L ', imagePath1, ' -R ', imagePath2, ' -H ', gdTruthHomography] )
   p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   output, errors = p.communicate()
   print(output)
