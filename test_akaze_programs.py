@@ -15,23 +15,17 @@ if sys.platform == 'win32':
 # Helper functions
 def extract_AKAZE_features(imagePath):
   command = " ".join([programs[0], ' -i ', imagePath])
-  p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-  output, errors = p.communicate()
-  print(output)
+  os.system(command)
 
 def match_AKAZE_features(imagePath1, imagePath2, gdTruthHomography):
   command = " ".join(
     [programs[1], ' -L ', imagePath1, ' -R ', imagePath2, ' -H ', gdTruthHomography] )
-  p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-  output, errors = p.communicate()
-  print(output)
+  os.system(command)
 
 def compare_AKAZE_BRISK_ORB(imagePath1, imagePath2, gdTruthHomography):
   command = " ".join(
     [programs[2], ' -L ', imagePath1, ' -R ', imagePath2, ' -H ', gdTruthHomography] )
-  p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-  output, errors = p.communicate()
-  print(output)
+  os.system(command)
 
 # ===============================================================================
 # Example datasets
