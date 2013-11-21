@@ -386,7 +386,7 @@ void halfsample_image(const cv::Mat& src, cv::Mat& dst) {
  * @param dy The derivative order in y-direction
  * @param scale The kernel size
  */
-void compute_derivative_kernels(cv::OutputArray& kx_, cv::OutputArray& ky_,
+void compute_derivative_kernels(cv::OutputArray kx_, cv::OutputArray ky_,
                                 const size_t& dx, const size_t& dy, const size_t& scale) {
 
   const int ksize = 3 + 2*(scale-1);
@@ -408,7 +408,7 @@ void compute_derivative_kernels(cv::OutputArray& kx_, cv::OutputArray& ky_,
   for (int k = 0; k < 2; k++) {
     Mat* kernel = k == 0 ? &kx : &ky;
     int order = k == 0 ? dx : dy;
-    float kerI[ksize];
+    float kerI[1000];
 
     for (int t = 0; t<ksize; t++) {
       kerI[t] = 0;

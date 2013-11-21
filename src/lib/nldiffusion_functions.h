@@ -9,9 +9,7 @@
 
 // OpenMP Includes
 #ifdef _OPENMP
-#include <omp.h>
-#else
-#define omp_get_thread_num() 0
+# include <omp.h>
 #endif
 
 //*************************************************************************************
@@ -33,7 +31,7 @@ void compute_scharr_derivatives(const cv::Mat& src, cv::Mat& dst, const size_t& 
 void nld_step_scalar(cv::Mat& Ld, const cv::Mat& c, cv::Mat& Lstep, const float& stepsize);
 void downsample_image(const cv::Mat& src, cv::Mat& dst);
 void halfsample_image(const cv::Mat& src, cv::Mat& dst);
-void compute_derivative_kernels(cv::OutputArray& kx_, cv::OutputArray& ky_,
+void compute_derivative_kernels(cv::OutputArray kx_, cv::OutputArray ky_,
                                 const size_t& dx, const size_t& dy, const size_t& scale);
 
 //*************************************************************************************
