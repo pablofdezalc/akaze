@@ -118,32 +118,31 @@ public:
 
   // Scale Space methods
   void Allocate_Memory_Evolution(void);
-  int Create_Nonlinear_Scale_Space(const cv::Mat &img);
-  void Feature_Detection(std::vector<cv::KeyPoint> &kpts);
+  int Create_Nonlinear_Scale_Space(const cv::Mat& img);
+  void Feature_Detection(std::vector<cv::KeyPoint>& kpts);
   void Compute_Determinant_Hessian_Response(void);
   void Compute_Multiscale_Derivatives(void);
-  void Determinant_Hessian_Parallel(std::vector<cv::KeyPoint> &kpts);
-  void Find_Scale_Space_Extrema(std::vector<cv::KeyPoint> &kpts);
-  void Do_Subpixel_Refinement(std::vector<cv::KeyPoint> &kpts);
-  void Feature_Suppression_Distance(std::vector<cv::KeyPoint> &kpts, const float& mdist);
+  void Find_Scale_Space_Extrema(std::vector<cv::KeyPoint>& kpts);
+  void Do_Subpixel_Refinement(std::vector<cv::KeyPoint>& kpts);
+  void Feature_Suppression_Distance(std::vector<cv::KeyPoint>& kpts, float mdist);
 
   // Feature description methods
-  void Compute_Descriptors(std::vector<cv::KeyPoint> &kpts, cv::Mat &desc);
-  void Compute_Main_Orientation_SURF(cv::KeyPoint &kpt);
+  void Compute_Descriptors(std::vector<cv::KeyPoint>& kpts, cv::Mat& desc);
+  void Compute_Main_Orientation_SURF(cv::KeyPoint& kpt);
 
   // SURF Pattern Descriptor
-  void Get_SURF_Descriptor_Upright_64(const cv::KeyPoint &kpt, float *desc);
-  void Get_SURF_Descriptor_64(const cv::KeyPoint &kpt, float *desc);
+  void Get_SURF_Descriptor_Upright_64(const cv::KeyPoint& kpt, float *desc);
+  void Get_SURF_Descriptor_64(const cv::KeyPoint& kpt, float *desc);
 
   // M-SURF Pattern Descriptor
-  void Get_MSURF_Upright_Descriptor_64(const cv::KeyPoint &kpt, float *desc);
-  void Get_MSURF_Descriptor_64(const cv::KeyPoint &kpt, float *desc);
+  void Get_MSURF_Upright_Descriptor_64(const cv::KeyPoint& kpt, float *desc);
+  void Get_MSURF_Descriptor_64(const cv::KeyPoint& kpt, float *desc);
 
   // M-LDB Pattern Descriptor
-  void Get_Upright_MLDB_Full_Descriptor(const cv::KeyPoint &kpt, unsigned char *desc);
-  void Get_MLDB_Full_Descriptor(const cv::KeyPoint &kpt, unsigned char *desc);
-  void Get_Upright_MLDB_Descriptor_Subset(const cv::KeyPoint &kpt, unsigned char *desc);
-  void Get_MLDB_Descriptor_Subset(const cv::KeyPoint &kpt, unsigned char *desc);
+  void Get_Upright_MLDB_Full_Descriptor(const cv::KeyPoint& kpt, unsigned char *desc);
+  void Get_MLDB_Full_Descriptor(const cv::KeyPoint& kpt, unsigned char *desc);
+  void Get_Upright_MLDB_Descriptor_Subset(const cv::KeyPoint& kpt, unsigned char *desc);
+  void Get_MLDB_Descriptor_Subset(const cv::KeyPoint& kpt, unsigned char *desc);
 
   // Methods for saving some results and showing computation times
   void Save_Scale_Space(void);
@@ -160,6 +159,7 @@ public:
  * @param options AKAZE options
  */
 void setDefaultAKAZEOptions(AKAZEOptions& options);
+
 /**
  * @brief This function prints default parameters for the A-KAZE detector.
  * @param options AKAZE options
@@ -169,9 +169,9 @@ void printAKAZEOptions(const AKAZEOptions& options);
 // Inline functions
 void generateDescriptorSubsample(cv::Mat& sampleList, cv::Mat& comparisons,
                                  size_t nbits, size_t pattern_size, size_t nchannels);
-float get_angle(const float& x, const float& y);
-float gaussian(const float& x, const float& y, const float& sigma);
-void check_descriptor_limits(int &x, int &y, const int& width, const int& height);
+float get_angle(float x, float y);
+float gaussian(float x, float y, float sigma);
+void check_descriptor_limits(int& x, int& y, const int width, const int height);
 int fRound(float flt);
 
 //*************************************************************************************

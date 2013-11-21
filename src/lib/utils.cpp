@@ -243,9 +243,9 @@ void matches2points_nndr(const std::vector<cv::KeyPoint>& train,
  * @param error The minimum pixelic error to accept an inlier
  * @param use_fund Set to true if you want to compute a fundamental matrix
  */
-void compute_inliers_ransac(const std::vector<cv::Point2f> &matches,
-                            std::vector<cv::Point2f> &inliers,
-                            const float& error, bool use_fund) {
+void compute_inliers_ransac(const std::vector<cv::Point2f>& matches,
+                            std::vector<cv::Point2f>& inliers,
+                            float error, bool use_fund) {
 
   vector<Point2f> points1, points2;
   Mat H = Mat::zeros(3,3,CV_32F);
@@ -503,13 +503,15 @@ static inline std::string toUpper(std::string s)
   return s;
 }
 
+//*************************************************************************************
+//*************************************************************************************
+
 /**
  * @brief This function shows the possible command line configuration options
  */
 void show_input_options_help(int example) {
 
   fflush(stdout);
-
   cout << "A-KAZE Features" << endl;
   cout << "Usage: ";
   if (example == 0) {

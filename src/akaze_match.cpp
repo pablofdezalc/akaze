@@ -17,25 +17,22 @@
  * @brief Main program for matching two images with AKAZE features
  * @date Sep 15, 2013
  * @author Pablo F. Alcantarilla
- *
- * Modification:
- * 16/11/2013: David Ok (david.ok8@gmail.com)
- *
  */
 
 #include "akaze_match.h"
-#include "cmdLine.h"
 
 using namespace std;
 using namespace cv;
 
-int main( int argc, char *argv[] )
-{
+//*************************************************************************************
+//*************************************************************************************
+
+int main(int argc, char *argv[]) {
+
   // Variables
   AKAZEOptions options;
   Mat img1, img1_32, img2, img2_32, img1_rgb, img2_rgb, img_com, img_r;
-  string img_name1, img_name2, hfile;
-  string rfile;
+  string img_path1, img_path2, homography_path;
   float ratio = 0.0, rfactor = .60;
   int nkpts1 = 0, nkpts2 = 0, nmatches = 0, ninliers = 0, noutliers = 0;
 
@@ -49,24 +46,24 @@ int main( int argc, char *argv[] )
   double takaze = 0.0, tmatch = 0.0, thomo = 0.0;
 
   // Parse the input command line options
-  if (!parse_input_options(options,img_name1,img_name2,hfile,rfile,argc,argv)) {
+  if (parse_input_options(options,img_path1,img_path2,homography_path,argc,argv)) {
     return -1;
   }
 
   // Read image 1 and if necessary convert to grayscale.
-  img1 = imread(img_name1,0);
+  img1 = imread(img_path1,0);
   if (img1.data == NULL) {
-    cout << "Error loading image 1: " << img_name1 << endl;
+    cout << "Error loading image 1: " << img_path1 << endl;
     return -1;
   }
   // Read image 2 and if necessary convert to grayscale.
-  img2 = imread(img_name2,0);
+  img2 = imread(img_path2,0);
   if (img2.data == NULL) {
-    cout << "Error loading image 2: " << img_name2 << endl;
+    cout << "Error loading image 2: " << img_path2 << endl;
     return -1;
   }
   // Read ground truth homography file
-  read_homography(hfile, HG);
+  read_homography(homography_path,HG);
 
   // Convert the images to float
   img1.convertTo(img1_32,CV_32F,1.0/255.0,0);
@@ -121,14 +118,20 @@ int main( int argc, char *argv[] )
     matcher_l1->knnMatch(desc1,desc2,dmatches,2);
   }
 
-  t2 = cv::getTickCount();
+  t2 = getTickCount();
   tmatch = 1000.0*(t2 - t1)/cv::getTickFrequency();
 
   // Compute Inliers!!
   t1 = getTickCount();
 
   matches2points_nndr(kpts1,kpts2,dmatches,matches,DRATIO);
-  compute_inliers_homography(matches,inliers,HG,MIN_H_ERROR);
+
+  if (COMPUTE_INLIERS_RANSAC == false) {
+    compute_inliers_homography(matches,inliers,HG,MIN_H_ERROR);
+  }
+  else {
+    compute_inliers_ransac(matches,inliers,MIN_H_ERROR,false);
+  }
 
   t2 = getTickCount();
   thomo = 1000.0*(t2 - t1)/getTickFrequency();
@@ -161,53 +164,166 @@ int main( int argc, char *argv[] )
   waitKey(0);
 }
 
-bool parse_input_options(AKAZEOptions& options,
-                         string& img_name1, string& img_name2,
-                         string& hom, string& kfile, int argc, char *argv[])
-{
-  // Create command line options.
-  CmdLine cmdLine;
-  cmdLine.add(make_switch('h', "help"));
-  // Verbose option for debug.
-  cmdLine.add(make_option('v', options.verbosity, "verbose"));
-  // Image file name.
-  cmdLine.add(make_option('L', img_name1, "left image, i.e. path of image 1"));
-  cmdLine.add(make_option('R', img_name2, "right image, i.e. path of image 2"));
-  cmdLine.add(make_option('H', hom, "ground truth homography"));
-  // Scale-space parameters.
-  cmdLine.add(make_option('O', options.omax, "omax"));
-  cmdLine.add(make_option('S', options.nsublevels, "nsublevels"));
-  cmdLine.add(make_option('s', options.soffset, "soffset"));
-  cmdLine.add(make_option('d', options.sderivatives, "sderivatives"));
-  cmdLine.add(make_option('g', options.diffusivity, "diffusivity"));
-  // Detection parameters.
-  cmdLine.add(make_option('a', options.dthreshold, "dthreshold"));
-  cmdLine.add(make_option('b', options.dthreshold2, "dthreshold2")); // ?????
-  // Descriptor parameters.
-  cmdLine.add(make_option('D', options.descriptor, "descriptor"));
-  cmdLine.add(make_option('C', options.descriptor_channels, "descriptor_channels"));
-  cmdLine.add(make_option('F', options.descriptor_size, "descriptor_size"));
-  // Save the keypoints.
-  cmdLine.add(make_option('o', kfile, "output"));
-  // Save scale-space
-  cmdLine.add(make_option('w', options.save_scale_space, "save_scale_space"));
+//*************************************************************************************
+//*************************************************************************************
 
-  // Try to process
-  try
-  {
-    if (argc == 1)
-      throw std::string("Invalid command line parameter.");
+/**
+ * @brief This function parses the command line arguments for setting A-KAZE parameters
+ * and image matching between two input images
+ * @param options Structure that contains A-KAZE settings
+ * @param img_path1 Path for the first input image
+ * @param img_path2 Path for the second input image
+ * @param homography_path Path for the file that contains the ground truth homography
+ */
+int parse_input_options(AKAZEOptions& options, std::string& img_path1, std::string& img_path2,
+                        std::string& homography_path, int argc, char *argv[]) {
 
-    cmdLine.process(argc, argv);
-
-    if (!cmdLine.used('L') || !cmdLine.used('R') || !cmdLine.used('H'))
-      throw std::string("Invalid command line parameter.");
-  }
-  catch(const std::string& s)
-  {
+  // If there is only one argument return
+  if (argc == 1) {
     show_input_options_help(1);
-    return false;
+    return -1;
+  }
+  // Set the options from the command line
+  else if (argc >= 2) {
+
+    // Load the default options
+    options = AKAZEOptions();
+
+    if (!strcmp(argv[1],"--help")) {
+      show_input_options_help(1);
+      return -1;
+    }
+
+    img_path1 = argv[1];
+    img_path2 = argv[2];
+    homography_path = argv[3];
+
+    for (int i = 1; i < argc; i++) {
+      if (!strcmp(argv[i],"--soffset")) {
+        i = i+1;
+        if (i >= argc) {
+          cerr << "Error introducing input options!!" << endl;
+          return -1;
+        }
+        else {
+          options.soffset = atof(argv[i]);
+        }
+      }
+      else if (!strcmp(argv[i],"--omax")) {
+        i = i+1;
+        if (i >= argc) {
+          cerr << "Error introducing input options!!" << endl;
+          return -1;
+        }
+        else {
+          options.omax = atof(argv[i]);
+        }
+      }
+      else if ( !strcmp(argv[i],"--dthreshold")) {
+        i = i+1;
+        if (i >= argc) {
+          cerr << "Error introducing input options!!" << endl;
+          return -1;
+        }
+        else {
+          options.dthreshold = atof(argv[i]);
+        }
+      }
+      else if (!strcmp(argv[i],"--dthreshold2")) {
+        i = i+1;
+        if (i >= argc) {
+          cerr << "Error introducing input options!!" << endl;
+          return -1;
+        }
+        else {
+          options.dthreshold2 = atof(argv[i]);
+        }
+      }
+      else if (!strcmp(argv[i],"--sderivatives")) {
+        i = i+1;
+        if (i >= argc) {
+          cerr << "Error introducing input options!!" << endl;
+          return -1;
+        }
+        else {
+          options.sderivatives = atof(argv[i]);
+        }
+      }
+      else if (!strcmp(argv[i],"--nsublevels")) {
+        i = i+1;
+        if (i >= argc) {
+          cerr << "Error introducing input options!!" << endl;
+          return -1;
+        }
+        else {
+          options.nsublevels = atoi(argv[i]);
+        }
+      }
+      else if (!strcmp(argv[i],"--diffusivity"))
+      {
+        i = i+1;
+        if (i >= argc) {
+          cerr << "Error introducing input options!!" << endl;
+          return -1;
+        }
+        else {
+          options.diffusivity = atoi(argv[i]);
+        }
+      }
+      else if (!strcmp(argv[i],"--descriptor")) {
+        i = i+1;
+        if (i >= argc) {
+          cerr << "Error introducing input options!!" << endl;
+          return -1;
+        }
+        else {
+          options.descriptor = atoi(argv[i]);
+
+          if (options.descriptor < 0 || options.descriptor > MLDB) {
+            options.descriptor = MLDB;
+          }
+        }
+      }
+      else if (!strcmp(argv[i],"--descriptor_channels")) {
+        i = i+1;
+        if (i >= argc) {
+          cerr << "Error introducing input options!!" << endl;
+          return -1;
+        }
+        else {
+          options.descriptor_channels = atoi(argv[i]);
+
+          if (options.descriptor_channels <= 0 || options.descriptor_channels > 3 ) {
+            options.descriptor_channels = 3;
+          }
+        }
+      }
+      else if (!strcmp(argv[i],"--descriptor_size")) {
+        i = i+1;
+        if (i >= argc) {
+          cerr << "Error introducing input options!!" << endl;
+          return -1;
+        }
+        else {
+          options.descriptor_size = atoi(argv[i]);
+
+          if (options.descriptor_size < 0) {
+            options.descriptor_size = 0;
+          }
+        }
+      }
+      else if (!strcmp(argv[i],"--verbose")) {
+        options.verbosity = true;
+      }
+      else if (!strncmp(argv[i],"--",2))
+        cerr << "Unknown command "<<argv[i] << endl;
+    }
+  }
+  else {
+    cerr << "Error introducing input options!!" << endl;
+    show_input_options_help(1);
+    return -1;
   }
 
-  return true;
+  return 0;
 }

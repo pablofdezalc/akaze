@@ -42,17 +42,17 @@ void gaussian_2D_convolution(const cv::Mat& src, cv::Mat& dst, const size_t& ksi
 
   // Compute an appropriate kernel size according to the specified sigma
   if (sigma > ksize_x || sigma > ksize_y || ksize_x == 0 || ksize_y == 0) {
-      ksize_x_ = ceil(2.0*(1.0 + (sigma-0.8)/(0.3)));
-      ksize_y_ = ksize_x_;
+    ksize_x_ = ceil(2.0*(1.0 + (sigma-0.8)/(0.3)));
+    ksize_y_ = ksize_x_;
   }
 
   // The kernel size must be and odd number
   if ((ksize_x_ % 2) == 0) {
-      ksize_x_ += 1;
+    ksize_x_ += 1;
   }
 
   if ((ksize_y_ % 2) == 0) {
-      ksize_y_ += 1;
+    ksize_y_ += 1;
   }
 
   // Perform the Gaussian Smoothing with border replication

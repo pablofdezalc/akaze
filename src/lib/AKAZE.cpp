@@ -33,7 +33,7 @@ using namespace cv;
  * @param options AKAZE configuration options
  * @note This constructor allocates memory for the nonlinear scale space
 */
-AKAZE::AKAZE(const AKAZEOptions &options) {
+AKAZE::AKAZE(const AKAZEOptions& options) {
 
   soffset_ = options.soffset;
   factor_size_ = DEFAULT_FACTOR_SIZE;
@@ -187,20 +187,20 @@ int AKAZE::Create_Nonlinear_Scale_Space(const cv::Mat &img) {
 
     // Compute the conductivity equation
     switch (diffusivity_) {
-    case 0:
-      pm_g1(evolution_[i].Lx,evolution_[i].Ly,evolution_[i].Lflow,kcontrast_);
+      case 0:
+        pm_g1(evolution_[i].Lx,evolution_[i].Ly,evolution_[i].Lflow,kcontrast_);
       break;
-    case 1:
-      pm_g2(evolution_[i].Lx,evolution_[i].Ly,evolution_[i].Lflow,kcontrast_);
+      case 1:
+        pm_g2(evolution_[i].Lx,evolution_[i].Ly,evolution_[i].Lflow,kcontrast_);
       break;
-    case 2:
-      weickert_diffusivity(evolution_[i].Lx,evolution_[i].Ly,evolution_[i].Lflow,kcontrast_);
+      case 2:
+        weickert_diffusivity(evolution_[i].Lx,evolution_[i].Ly,evolution_[i].Lflow,kcontrast_);
       break;
-    case 3:
-      charbonnier_diffusivity(evolution_[i].Lx,evolution_[i].Ly,evolution_[i].Lflow,kcontrast_);
+      case 3:
+        charbonnier_diffusivity(evolution_[i].Lx,evolution_[i].Ly,evolution_[i].Lflow,kcontrast_);
       break;
-    default:
-      std::cerr << "Diffusivity: " << diffusivity_ << " is not supported" << std::endl;
+      default:
+        std::cerr << "Diffusivity: " << diffusivity_ << " is not supported" << std::endl;
     }
 
     // Perform FED n inner steps
@@ -222,7 +222,7 @@ int AKAZE::Create_Nonlinear_Scale_Space(const cv::Mat &img) {
  * @brief This method selects interesting keypoints through the nonlinear scale space
  * @param kpts Vector of detected keypoints
 */
-void AKAZE::Feature_Detection(std::vector<cv::KeyPoint> &kpts) {
+void AKAZE::Feature_Detection(std::vector<cv::KeyPoint>& kpts) {
 
   double t1 = 0.0, t2 = 0.0;
 
@@ -251,7 +251,7 @@ void AKAZE::Compute_Multiscale_Derivatives(void) {
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-  for (int i = 0; i < evolution_.size(); i++) {
+  for (size_t i = 0; i < evolution_.size(); i++) {
     float ratio = pow(2.f,evolution_[i].octave);
     int sigma_size_ = fRound(evolution_[i].esigma*factor_size_/ratio);
 
@@ -284,7 +284,7 @@ void AKAZE::Compute_Determinant_Hessian_Response(void) {
   // Firstly compute the multiscale derivatives
   Compute_Multiscale_Derivatives();
 
-  for (size_t i = 0; i < evolution_.size(); i++){
+  for (size_t i = 0; i < evolution_.size(); i++) {
     if (verbosity_ == true) {
       cout << "Computing detector response. Determinant of Hessian. Evolution time: " << evolution_[i].etime << endl;
     }
@@ -295,9 +295,9 @@ void AKAZE::Compute_Determinant_Hessian_Response(void) {
         float lxy = *(evolution_[i].Lxy.ptr<float>(ix)+jx);
         float lyy = *(evolution_[i].Lyy.ptr<float>(ix)+jx);
         *(evolution_[i].Ldet.ptr<float>(ix)+jx) = (lxx*lyy-lxy*lxy);
-      } //for iy
-    } // for ix
-  } // for i
+      }
+    }
+  }
 }
 
 //*************************************************************************************
@@ -307,7 +307,7 @@ void AKAZE::Compute_Determinant_Hessian_Response(void) {
  * @brief This method finds extrema in the nonlinear scale space
  * @param kpts Vector of detected keypoints
 */
-void AKAZE::Find_Scale_Space_Extrema(std::vector<cv::KeyPoint> &kpts) {
+void AKAZE::Find_Scale_Space_Extrema(std::vector<cv::KeyPoint>& kpts) {
 
   double t1 = 0.0, t2 = 0.0;
   float value = 0.0;
@@ -318,7 +318,8 @@ void AKAZE::Find_Scale_Space_Extrema(std::vector<cv::KeyPoint> &kpts) {
   cv::KeyPoint point;
 
   // Set maximum size
-  if (descriptor_ == SURF_UPRIGHT || descriptor_ == SURF || descriptor_ == MLDB_UPRIGHT || descriptor_ == MLDB) {
+  if (descriptor_ == SURF_UPRIGHT || descriptor_ == SURF ||
+      descriptor_ == MLDB_UPRIGHT || descriptor_ == MLDB) {
     smax = 10.0*sqrtf(2.0);
   }
   else if (descriptor_ == MSURF_UPRIGHT || descriptor_ == MSURF) {
@@ -372,7 +373,7 @@ void AKAZE::Find_Scale_Space_Extrema(std::vector<cv::KeyPoint> &kpts) {
                 break;
               }
             }
-          } // for ik
+          }
 
           // Check out of bounds
           if (is_extremum == true) {
@@ -417,15 +418,15 @@ void AKAZE::Find_Scale_Space_Extrema(std::vector<cv::KeyPoint> &kpts) {
  * @brief This method performs subpixel refinement of the detected keypoints
  * @param kpts Vector of detected keypoints
 */
-void AKAZE::Do_Subpixel_Refinement(std::vector<cv::KeyPoint> &kpts) {
+void AKAZE::Do_Subpixel_Refinement(std::vector<cv::KeyPoint>& kpts) {
 
   double t1 = 0.0, t2 = 0.0;
   float Dx = 0.0, Dy = 0.0, ratio = 0.0;
   float Dxx = 0.0, Dyy = 0.0, Dxy = 0.0;
   int x = 0, y = 0;
-  cv::Mat A = Mat::zeros(2,2,CV_32F);
-  cv::Mat b = Mat::zeros(2,1,CV_32F);
-  cv::Mat dst = Mat::zeros(2,1,CV_32F);
+  Mat A = Mat::zeros(2,2,CV_32F);
+  Mat b = Mat::zeros(2,1,CV_32F);
+  Mat dst = Mat::zeros(2,1,CV_32F);
 
   t1 = getTickCount();
 
@@ -461,7 +462,7 @@ void AKAZE::Do_Subpixel_Refinement(std::vector<cv::KeyPoint> &kpts) {
     *(b.ptr<float>(0)) = -Dx;
     *(b.ptr<float>(1)) = -Dy;
 
-    cv::solve(A,b,dst,DECOMP_LU);
+    solve(A,b,dst,DECOMP_LU);
 
     if (fabs(*(dst.ptr<float>(0))) <= 1.0 && fabs(*(dst.ptr<float>(1))) <= 1.0) {
       kpts[i].pt.x = x + (*(dst.ptr<float>(0)));
@@ -478,7 +479,7 @@ void AKAZE::Do_Subpixel_Refinement(std::vector<cv::KeyPoint> &kpts) {
       kpts.erase(kpts.begin()+i);
       i--;
     }
-  } // for i
+  }
 
   t2 = getTickCount();
   tsubpixel_ = 1000.0*(t2-t1) / getTickFrequency();
@@ -492,23 +493,20 @@ void AKAZE::Do_Subpixel_Refinement(std::vector<cv::KeyPoint> &kpts) {
  * @param kpts Vector of keypoints
  * @param mdist Maximum distance in pixels
 */
-void AKAZE::Feature_Suppression_Distance(std::vector<cv::KeyPoint> &kpts, const float& mdist) {
+void AKAZE::Feature_Suppression_Distance(std::vector<cv::KeyPoint>& kpts, float mdist) {
+
   vector<KeyPoint> aux;
   vector<int> to_delete;
   float dist = 0.0, x1 = 0.0, y1 = 0.0, x2 = 0.0, y2 = 0.0;
   bool found = false;
 
   for (size_t i = 0; i < kpts.size(); i++) {
-
     x1 = kpts[i].pt.x;
     y1 = kpts[i].pt.y;
-
     for (size_t j = i+1; j < kpts.size(); j++) {
-
       x2 = kpts[j].pt.x;
       y2 = kpts[j].pt.y;
       dist = sqrt(pow(x1-x2,2)+pow(y1-y2,2));
-
       if (dist < mdist) {
         if (fabs(kpts[i].response) >= fabs(kpts[j].response)) {
           to_delete.push_back(j);
@@ -523,14 +521,12 @@ void AKAZE::Feature_Suppression_Distance(std::vector<cv::KeyPoint> &kpts, const 
 
   for (size_t i = 0; i < kpts.size(); i++) {
     found = false;
-
     for (size_t j = 0; j < to_delete.size(); j++) {
       if (i == (size_t)(to_delete[j])) {
         found = true;
         break;
       }
     }
-
     if (found == false) {
       aux.push_back(kpts[i]);
     }
@@ -549,7 +545,7 @@ void AKAZE::Feature_Suppression_Distance(std::vector<cv::KeyPoint> &kpts, const 
  * @param kpts Vector of detected keypoints
  * @param desc Matrix to store the descriptors
 */
-void AKAZE::Compute_Descriptors(std::vector<cv::KeyPoint> &kpts, cv::Mat &desc) {
+void AKAZE::Compute_Descriptors(std::vector<cv::KeyPoint>& kpts, cv::Mat& desc) {
 
   double t1 = 0.0, t2 = 0.0;
 
@@ -573,74 +569,74 @@ void AKAZE::Compute_Descriptors(std::vector<cv::KeyPoint> &kpts, cv::Mat &desc) 
 
   switch (descriptor_)
   {
-  case SURF_UPRIGHT : // Upright descriptors, not invariant to rotation
-  {
+    case SURF_UPRIGHT : // Upright descriptors, not invariant to rotation
+    {
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-    for (int i = 0; i < kpts.size(); i++) {
-      Get_SURF_Descriptor_Upright_64(kpts[i],desc.ptr<float>(i));
+      for (size_t i = 0; i < kpts.size(); i++) {
+        Get_SURF_Descriptor_Upright_64(kpts[i],desc.ptr<float>(i));
+      }
     }
-  }
     break;
-  case SURF :
-  {
+    case SURF :
+    {
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-    for (int i = 0; i < kpts.size(); i++) {
-      Compute_Main_Orientation_SURF(kpts[i]);
-      Get_SURF_Descriptor_64(kpts[i],desc.ptr<float>(i));
+      for (size_t i = 0; i < kpts.size(); i++) {
+        Compute_Main_Orientation_SURF(kpts[i]);
+        Get_SURF_Descriptor_64(kpts[i],desc.ptr<float>(i));
+      }
     }
-  }
     break;
-  case MSURF_UPRIGHT : // Upright descriptors, not invariant to rotation
-  {
+    case MSURF_UPRIGHT : // Upright descriptors, not invariant to rotation
+    {
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-    for (int i = 0; i < kpts.size(); i++) {
-      Get_MSURF_Upright_Descriptor_64(kpts[i],desc.ptr<float>(i));
+      for (size_t i = 0; i < kpts.size(); i++) {
+        Get_MSURF_Upright_Descriptor_64(kpts[i],desc.ptr<float>(i));
+      }
     }
-  }
     break;
-  case MSURF :
-  {
+    case MSURF :
+    {
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-    for (int i = 0; i < kpts.size(); i++) {
-      Compute_Main_Orientation_SURF(kpts[i]);
-      Get_MSURF_Descriptor_64(kpts[i],desc.ptr<float>(i));
+      for (size_t i = 0; i < kpts.size(); i++) {
+        Compute_Main_Orientation_SURF(kpts[i]);
+        Get_MSURF_Descriptor_64(kpts[i],desc.ptr<float>(i));
+      }
     }
-  }
     break;
-  case MLDB_UPRIGHT : // Upright descriptors, not invariant to rotation
-  {
+    case MLDB_UPRIGHT : // Upright descriptors, not invariant to rotation
+    {
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-    for (int i = 0; i < kpts.size(); i++) {
-      if (descriptor_size_ == 0)
-        Get_Upright_MLDB_Full_Descriptor(kpts[i],desc.ptr<unsigned char>(i));
-      else
-        Get_Upright_MLDB_Descriptor_Subset(kpts[i],desc.ptr<unsigned char>(i));
+      for (size_t i = 0; i < kpts.size(); i++) {
+        if (descriptor_size_ == 0)
+          Get_Upright_MLDB_Full_Descriptor(kpts[i],desc.ptr<unsigned char>(i));
+        else
+          Get_Upright_MLDB_Descriptor_Subset(kpts[i],desc.ptr<unsigned char>(i));
+      }
     }
-  }
     break;
-  case MLDB :
-  {
+    case MLDB :
+    {
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-    for (int i = 0; i < kpts.size(); i++) {
-      Compute_Main_Orientation_SURF(kpts[i]);
-      if (descriptor_size_ == 0)
-        Get_MLDB_Full_Descriptor(kpts[i],desc.ptr<unsigned char>(i));
-      else
-        Get_MLDB_Descriptor_Subset(kpts[i],desc.ptr<unsigned char>(i));
+      for (size_t i = 0; i < kpts.size(); i++) {
+        Compute_Main_Orientation_SURF(kpts[i]);
+        if (descriptor_size_ == 0)
+          Get_MLDB_Full_Descriptor(kpts[i],desc.ptr<unsigned char>(i));
+        else
+          Get_MLDB_Descriptor_Subset(kpts[i],desc.ptr<unsigned char>(i));
+      }
     }
-  }
     break;
   }
 
@@ -657,7 +653,7 @@ void AKAZE::Compute_Descriptors(std::vector<cv::KeyPoint> &kpts, cv::Mat &desc) 
  * @note The orientation is computed using a similar approach as described in the
  * original SURF method. See Bay et al., Speeded Up Robust Features, ECCV 2006
 */
-void AKAZE::Compute_Main_Orientation_SURF(cv::KeyPoint &kpt) {
+void AKAZE::Compute_Main_Orientation_SURF(cv::KeyPoint& kpt) {
 
   int ix = 0, iy = 0, idx = 0, s = 0, level = 0;
   float xf = 0.0, yf = 0.0, gweight = 0.0, ratio = 0.0;
@@ -732,7 +728,7 @@ void AKAZE::Compute_Main_Orientation_SURF(cv::KeyPoint &kpt) {
  * Gaussian weighting is performed. The descriptor is inspired from Bay et al.,
  * Speeded Up Robust Features, ECCV, 2006
 */
-void AKAZE::Get_SURF_Descriptor_Upright_64(const cv::KeyPoint &kpt, float *desc) {
+void AKAZE::Get_SURF_Descriptor_Upright_64(const cv::KeyPoint& kpt, float *desc) {
 
   float dx = 0.0, dy = 0.0, mdx = 0.0, mdy = 0.0;
   float rx = 0.0, ry = 0.0, len = 0.0, xf = 0.0, yf = 0.0;
@@ -810,7 +806,6 @@ void AKAZE::Get_SURF_Descriptor_Upright_64(const cv::KeyPoint &kpt, float *desc)
   for (int i = 0; i < dsize; i++) {
     desc[i] /= len;
   }
-
 }
 
 //*************************************************************************************
@@ -824,7 +819,7 @@ void AKAZE::Get_SURF_Descriptor_Upright_64(const cv::KeyPoint &kpt, float *desc)
  * Gaussian weighting is performed. The descriptor is inspired from Bay et al.,
  * Speeded Up Robust Features, ECCV, 2006
 */
-void AKAZE::Get_SURF_Descriptor_64(const cv::KeyPoint &kpt, float *desc) {
+void AKAZE::Get_SURF_Descriptor_64(const cv::KeyPoint& kpt, float *desc) {
 
   float dx = 0.0, dy = 0.0, mdx = 0.0, mdy = 0.0;
   float rx = 0.0, ry = 0.0, rrx = 0.0, rry = 0.0, len = 0.0, xf = 0.0, yf = 0.0;
@@ -909,7 +904,6 @@ void AKAZE::Get_SURF_Descriptor_64(const cv::KeyPoint &kpt, float *desc) {
   for (int i = 0; i < dsize; i++) {
     desc[i] /= len;
   }
-
 }
 
 //*************************************************************************************
@@ -924,7 +918,7 @@ void AKAZE::Get_SURF_Descriptor_64(const cv::KeyPoint &kpt, float *desc) {
  * from Agrawal et al., CenSurE: Center Surround Extremas for Realtime Feature Detection and Matching,
  * ECCV 2008
 */
-void AKAZE::Get_MSURF_Upright_Descriptor_64(const cv::KeyPoint &kpt, float *desc) {
+void AKAZE::Get_MSURF_Upright_Descriptor_64(const cv::KeyPoint& kpt, float *desc) {
 
   float dx = 0.0, dy = 0.0, mdx = 0.0, mdy = 0.0, gauss_s1 = 0.0, gauss_s2 = 0.0;
   float rx = 0.0, ry = 0.0, len = 0.0, xf = 0.0, yf = 0.0, ys = 0.0, xs = 0.0;
@@ -1047,7 +1041,7 @@ void AKAZE::Get_MSURF_Upright_Descriptor_64(const cv::KeyPoint &kpt, float *desc
  * from Agrawal et al., CenSurE: Center Surround Extremas for Realtime Feature Detection and Matching,
  * ECCV 2008
 */
-void AKAZE::Get_MSURF_Descriptor_64(const cv::KeyPoint &kpt, float *desc) {
+void AKAZE::Get_MSURF_Descriptor_64(const cv::KeyPoint& kpt, float *desc) {
 
   float dx = 0.0, dy = 0.0, mdx = 0.0, mdy = 0.0, gauss_s1 = 0.0, gauss_s2 = 0.0;
   float rx = 0.0, ry = 0.0, rrx = 0.0, rry = 0.0, len = 0.0, xf = 0.0, yf = 0.0, ys = 0.0, xs = 0.0;
@@ -1171,7 +1165,7 @@ void AKAZE::Get_MSURF_Descriptor_64(const cv::KeyPoint &kpt, float *desc) {
  * @param kpt Input keypoint
  * @param desc Descriptor vector
 */
-void AKAZE::Get_Upright_MLDB_Full_Descriptor(const cv::KeyPoint &kpt, unsigned char *desc) {
+void AKAZE::Get_Upright_MLDB_Full_Descriptor(const cv::KeyPoint& kpt, unsigned char *desc) {
 
   float di = 0.0, dx = 0.0, dy = 0.0;
   float ri = 0.0, rx = 0.0, ry = 0.0, xf = 0.0, yf = 0.0;
@@ -1180,10 +1174,10 @@ void AKAZE::Get_Upright_MLDB_Full_Descriptor(const cv::KeyPoint &kpt, unsigned c
   int level = 0, nsamples = 0, scale = 0;
   int dcount1 = 0, dcount2 = 0;
 
-  // Matrices for the LDB descriptor
-  Mat values_1 = cv::Mat::zeros(4,descriptor_channels_,CV_32FC1);
-  Mat values_2 = cv::Mat::zeros(9,descriptor_channels_,CV_32FC1);
-  Mat values_3 = cv::Mat::zeros(16,descriptor_channels_,CV_32FC1);
+  // Matrices for the M-LDB descriptor
+  Mat values_1 = Mat::zeros(4,descriptor_channels_,CV_32FC1);
+  Mat values_2 = Mat::zeros(9,descriptor_channels_,CV_32FC1);
+  Mat values_3 = Mat::zeros(16,descriptor_channels_,CV_32FC1);
 
   // Get the information from the keypoint
   ratio = (float)(1<<kpt.octave);
@@ -1384,7 +1378,7 @@ void AKAZE::Get_Upright_MLDB_Full_Descriptor(const cv::KeyPoint &kpt, unsigned c
  * @param kpt Input keypoint
  * @param desc Descriptor vector
 */
-void AKAZE::Get_MLDB_Full_Descriptor(const cv::KeyPoint &kpt, unsigned char *desc) {
+void AKAZE::Get_MLDB_Full_Descriptor(const cv::KeyPoint& kpt, unsigned char *desc) {
 
   float di = 0.0, dx = 0.0, dy = 0.0, ratio = 0.0;
   float ri = 0.0, rx = 0.0, ry = 0.0, rrx = 0.0, rry = 0.0, xf = 0.0, yf = 0.0;
@@ -1393,7 +1387,7 @@ void AKAZE::Get_MLDB_Full_Descriptor(const cv::KeyPoint &kpt, unsigned char *des
   int level = 0, nsamples = 0, scale = 0;
   int dcount1 = 0, dcount2 = 0;
 
-  // Matrices for the LDB descriptor
+  // Matrices for the M-LDB descriptor
   Mat values_1 = Mat::zeros(4,descriptor_channels_,CV_32FC1);
   Mat values_2 = Mat::zeros(9,descriptor_channels_,CV_32FC1);
   Mat values_3 = Mat::zeros(16,descriptor_channels_,CV_32FC1);
@@ -1686,7 +1680,7 @@ void AKAZE::Get_MLDB_Full_Descriptor(const cv::KeyPoint &kpt, unsigned char *des
  * @param kpt Input keypoint
  * @param desc Descriptor vector
 */
-void AKAZE::Get_MLDB_Descriptor_Subset(const cv::KeyPoint &kpt, unsigned char *desc) {
+void AKAZE::Get_MLDB_Descriptor_Subset(const cv::KeyPoint& kpt, unsigned char *desc) {
 
   float di, dx, dy;
   float  rx, ry;
@@ -1778,7 +1772,7 @@ void AKAZE::Get_MLDB_Descriptor_Subset(const cv::KeyPoint &kpt, unsigned char *d
  * @param kpt Input keypoint
  * @param desc Descriptor vector
 */
-void AKAZE::Get_Upright_MLDB_Descriptor_Subset(const cv::KeyPoint &kpt, unsigned char *desc) {
+void AKAZE::Get_Upright_MLDB_Descriptor_Subset(const cv::KeyPoint& kpt, unsigned char *desc) {
 
   float di = 0.0f, dx = 0.0f, dy = 0.0f;
   float rx = 0.0f, ry = 0.0f;
@@ -1862,14 +1856,14 @@ void AKAZE::Get_Upright_MLDB_Descriptor_Subset(const cv::KeyPoint &kpt, unsigned
 */
 void AKAZE::Save_Scale_Space(void) {
 
-  cv::Mat img_aux;
-  string cad;
+  Mat img_aux;
+  string outputFile;
 
   for (size_t i = 0; i < evolution_.size(); i++) {
     convert_scale(evolution_[i].Lt);
     evolution_[i].Lt.convertTo(img_aux,CV_8U,255.0,0);
-    cad = "../output/evolution_" + to_formatted_string(i, 2) + ".jpg";
-    imwrite(cad,img_aux);
+    outputFile = "../output/evolution_" + to_formatted_string(i, 2) + ".jpg";
+    imwrite(outputFile,img_aux);
   }
 }
 
@@ -1883,7 +1877,7 @@ void AKAZE::Save_Scale_Space(void) {
 void AKAZE::Save_Detector_Responses(void) {
 
   Mat img_aux;
-  string cad;
+  string outputFile;
   float ttime = 0.0;
   int nimgs = 0;
 
@@ -1892,11 +1886,11 @@ void AKAZE::Save_Detector_Responses(void) {
     if (ttime > 0) {
       convert_scale(evolution_[i].Ldet);
       evolution_[i].Ldet.convertTo(img_aux,CV_8U,255.0,0);
-      cad = "../output/images/detector_" + to_formatted_string(nimgs, 2) + ".jpg";
-      imwrite(cad,img_aux);
+      outputFile = "../output/images/detector_" + to_formatted_string(nimgs, 2) + ".jpg";
+      imwrite(outputFile,img_aux);
       nimgs++;
-    } // if ttime
-  } // for i
+    }
+  }
 }
 
 
@@ -1915,6 +1909,9 @@ void AKAZE::Show_Computation_Times(void) {
   cout << "   - Time Subpixel: " << tsubpixel_ << endl;
   cout << "(*) Time Descriptor: " << tdescriptor_ << endl;
 }
+
+//*************************************************************************************
+//*************************************************************************************
 
 /**
  * @brief This function computes a (quasi-random) list of bits to be taken
@@ -1964,19 +1961,18 @@ void generateDescriptorSubsample(cv::Mat& sampleList, cv::Mat& comparisons, size
   }
 
   srand(1024);
-  Mat_<int> comps = cv::Mat_<int>(nchannels*ceil(nbits/(float)nchannels),2);
+  Mat_<int> comps = Mat_<int>(nchannels*ceil(nbits/(float)nchannels),2);
   comps = 1000;
 
   // Select some samples. A sample includes all channels
   int count =0;
   size_t npicks = ceil(nbits/(float)nchannels);
-  cv::Mat_<int> samples(29,3);
-  cv::Mat_<int> fullcopy = fullM.clone();
+  Mat_<int> samples(29,3);
+  Mat_<int> fullcopy = fullM.clone();
   samples = -1;
 
   for (size_t i=0; i<npicks; i++) {
     size_t k = rand() % (fullM.rows-i);
-
     if (i < 6) {
       // Force use of the coarser grid values and comparisons
       k = i;
@@ -2039,7 +2035,7 @@ void generateDescriptorSubsample(cv::Mat& sampleList, cv::Mat& comparisons, size
 /**
  * @brief This function computes the angle from the vector given by (X Y). From 0 to 2*Pi
 */
-inline float get_angle(const float& x, const float& y) {
+inline float get_angle(float x, float y) {
 
   if (x >= 0 && y >= 0) {
     return atanf(y/x);
@@ -2069,7 +2065,7 @@ inline float get_angle(const float& x, const float& y) {
  * @param y Y Position
  * @param sig Standard Deviation
 */
-inline float gaussian(const float& x, const float& y, const float& sigma) {
+inline float gaussian(float x, float y, float sigma) {
 
   return expf(-(x*x+y*y)/(2.0f*sigma*sigma));
 }
@@ -2084,7 +2080,7 @@ inline float gaussian(const float& x, const float& y, const float& sigma) {
  * @param width Image width
  * @param height Image height
 */
-inline void check_descriptor_limits(int &x, int &y, const int& width, const int& height) {
+inline void check_descriptor_limits(int &x, int &y, const int width, const int height) {
 
   if (x < 0) {
     x = 0;
