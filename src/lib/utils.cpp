@@ -147,8 +147,8 @@ void draw_keypoints(cv::Mat &img, const std::vector<cv::KeyPoint> &kpts) {
  * @param desc Matrix that contains the extracted descriptors
  * @param save_desc Set to 1 if we want to save the descriptors
  */
-int save_keypoints(const char *outFile, const std::vector<cv::KeyPoint>& kpts,
-                   const cv::Mat& desc, const bool& save_desc) {
+int save_keypoints(const string& outFile, const std::vector<cv::KeyPoint>& kpts,
+                   const cv::Mat& desc, bool save_desc) {
 
   int nkpts = 0, dsize = 0;
   float sc = 0.0;
@@ -156,17 +156,16 @@ int save_keypoints(const char *outFile, const std::vector<cv::KeyPoint>& kpts,
   nkpts = (int)(kpts.size());
   dsize = (int)(desc.cols);
 
-  ofstream ipfile(outFile);
+  ofstream ipfile(outFile.c_str());
 
   if (!ipfile) {
     cerr << "Couldn't open file '" << outFile << "'!" << endl;
     return -1;
   }
 
-  if (save_desc == false) {
+  if (!save_desc) {
     ipfile << 1 << endl << nkpts << endl;
-  }
-  else {
+  } else {
     ipfile << dsize << endl << nkpts << endl;
   }
 
@@ -218,7 +217,7 @@ int save_keypoints(const char *outFile, const std::vector<cv::KeyPoint>& kpts,
 void matches2points_nndr(const std::vector<cv::KeyPoint>& train,
                          const std::vector<cv::KeyPoint>& query,
                          const std::vector<std::vector<cv::DMatch> >& matches,
-                         std::vector<cv::Point2f>& pmatches, const float& nndr) {
+                         std::vector<cv::Point2f>& pmatches, float nndr) {
 
   float dist1 = 0.0, dist2 = 0.0;
   for (size_t i = 0; i < matches.size(); i++) {
@@ -246,7 +245,7 @@ void matches2points_nndr(const std::vector<cv::KeyPoint>& train,
  */
 void compute_inliers_ransac(const std::vector<cv::Point2f> &matches,
                             std::vector<cv::Point2f> &inliers,
-                            const float& error, const bool& use_fund) {
+                            const float& error, bool use_fund) {
 
   vector<Point2f> points1, points2;
   Mat H = Mat::zeros(3,3,CV_32F);
@@ -285,7 +284,7 @@ void compute_inliers_ransac(const std::vector<cv::Point2f> &matches,
  */
 void compute_inliers_homography(const std::vector<cv::Point2f>& matches,
                                 std::vector<cv::Point2f>& inliers, const cv::Mat& H,
-                                const float& min_error) {
+                                float min_error) {
 
   float h11 = 0.0, h12 = 0.0, h13 = 0.0;
   float h21 = 0.0, h22 = 0.0, h23 = 0.0;
@@ -390,7 +389,7 @@ void draw_inliers(const cv::Mat& img1, const cv::Mat& img2, cv::Mat& img_com,
  * @param color The color for each method
  */
 void draw_inliers(const cv::Mat& img1, const cv::Mat& img2, cv::Mat& img_com,
-                  const std::vector<cv::Point2f>& ptpairs, const int& color) {
+                  const std::vector<cv::Point2f>& ptpairs, int color) {
 
   int x1 = 0, y1 = 0, x2 = 0, y2 = 0;
   float rows1 = 0.0, cols1 = 0.0;
@@ -449,12 +448,12 @@ void draw_inliers(const cv::Mat& img1, const cv::Mat& img2, cv::Mat& img_com,
  * @param calib_file Name of the txt file that contains the ground truth data
  * @param H1toN Matrix to store the ground truth homography
  */
-void read_homography(const char *hFile, cv::Mat& H1toN) {
+void read_homography(const string& hFile, cv::Mat& H1toN) {
 
   float h11 = 0.0, h12 = 0.0, h13 = 0.0;
   float h21 = 0.0, h22 = 0.0, h23 = 0.0;
   float h31 = 0.0, h32 = 0.0, h33 = 0.0;
-  int  tmp_buf_size = 256;
+  const int tmp_buf_size = 256;
   char tmp_buf[tmp_buf_size];
 
   // Allocate memory for the OpenCV matrices
@@ -494,39 +493,77 @@ void read_homography(const char *hFile, cv::Mat& H1toN) {
 //*************************************************************************************
 //*************************************************************************************
 
+const size_t length = string("--descriptor_channels").size() + 2;
+static inline std::ostream& cout_help()
+{ cout << setw(length); return cout; }
+
+static inline std::string toUpper(std::string s)
+{
+  std::transform(s.begin(), s.end(), s.begin(), ::toupper);
+  return s;
+}
+
 /**
  * @brief This function shows the possible command line configuration options
  */
-void show_input_options_help(const int& example) {
+void show_input_options_help(int example) {
 
   fflush(stdout);
 
   cout << "A-KAZE Features" << endl;
-  cout << "************************************************" << endl;
-  cout << "For running the program you need to type in the command line the following arguments: " << endl;
-
+  cout << "Usage: ";
   if (example == 0) {
-    cout << "./akaze_features img.jpg options" << endl;
+    cout << "./akaze_features -i img.jpg [options]" << endl;
   }
   else if (example == 1) {
-    cout << "./akaze_match img1.jpg img2.pgm homography.txt options" << endl;
+    cout << "./akaze_match img1.jpg img2.pgm homography.txt [options]" << endl;
   }
   else if (example == 2) {
-    cout << "./akaze_compare img1.jpg img2.pgm homography.txt options" << endl;
+    cout << "./akaze_compare img1.jpg img2.pgm homography.txt [options]" << endl;
   }
-
-  cout << "The options are not mandatory. In case you do not specify additional options, default arguments will be used" << endl << endl;
-  cout << "Here is a description of the additional options: " << endl;
-  cout << "--verbose " << "\t\t if verbosity is required" << endl;
-  cout << "--help" << "\t\t for showing the command line options" << endl;
-  cout << "--soffset" << "\t\t the base scale offset (sigma units)" << endl;
-  cout << "--omax" << "\t\t maximum octave evolution of the image 2^sigma (coarsest scale)" << endl;
-  cout << "--nsublevels" << "\t\t number of sublevels per octave" << endl;
-  cout << "--diffusivity" << "\t\t diffusivity function 0 -> PM 1, 1 -> PM 2, 2 -> Weickert" << endl;
-  cout << "--dthreshold" << "\t\t Feature detector threshold response for accepting points (0.001 can be a good value)" << endl;
-  cout << "--descriptor" << "\t\t Descriptor Type 0 -> SURF_UPRIGHT, 1 -> SURF, 2 -> M-SURF_UPRIGHT, 3 -> M-SURF, 4 -> M-LDB_UPRIGHT, 5 -> M-LDB" << endl;
-  cout << "--descriptor_channels " <<"\t\t Descriptor Channels for M-LDB (valid values: 1, 2 (intensity+grdient magnitude), 3(intensity + X and Y gradients" <<endl;
-  cout << "--descriptor_size" << "\t\t Descriptor size for M-LDB in bits. 0 means the full length descriptor (486)!!" << endl;
-  cout << "--show_results" << "\t\t 1 in case we want to show detection results. 0 otherwise" << endl;
+  
   cout << endl;
+  cout_help() << "Options below are not mandatory. Unless specified, default arguments are used." << endl << endl;  
+  // Justify on the left
+  cout << left;
+  // Generalities
+  cout_help() << "--help" << "Show the command line options" << endl;
+  cout_help() << "--verbose " << "Verbosity is required" << endl;
+  cout_help() << endl;
+  // Scale-space parameters
+  cout_help() << "--soffset" << "Base scale offset (sigma units)" << endl;
+  cout_help() << "--omax" << "Maximum octave of image evolution" << endl;
+  cout_help() << "--nsublevels" << "Number of sublevels per octave" << endl;
+  cout_help() << "--diffusivity" << "Diffusivity function. Possible values:" << endl;
+  cout_help() << " " << "0 -> Perona-Malik, g1 = exp(-|dL|^2/k^2)" << endl;
+  cout_help() << " " << "1 -> Perona-Malik, g2 = 1 / (1 + dL^2 / k^2)" << endl;
+  cout_help() << " " << "2 -> Weickert diffusivity" << endl;
+  cout_help() << " " << "3 -> Charbonnier diffusivity" << endl;
+  cout_help() << endl;
+  // Feature detection parameters.
+  cout_help() << "--dthreshold" << "Feature detector threshold response for keypoints" << endl;
+  cout_help() << " " << "(0.001 can be a good value)" << endl;
+  cout_help() << endl;
+  // Descriptor parameters.
+  cout_help() << "--descriptor" << "Descriptor Type. Possible values:" << endl;
+  cout_help() << " " << "0 -> SURF_UPRIGHT" << endl;
+  cout_help() << " " << "1 -> SURF" << endl;
+  cout_help() << " " << "2 -> M-SURF_UPRIGHT," << endl;
+  cout_help() << " " << "3 -> M-SURF" << endl;
+  cout_help() << " " << "4 -> M-LDB_UPRIGHT" << endl;
+  cout_help() << " " << "5 -> M-LDB" << endl;
+  
+  cout_help() << "--descriptor_channels " << "Descriptor Channels for M-LDB. Valid values: " << endl;
+  cout_help() << " " << "1 -> intensity" << endl;
+  cout_help() << " " << "2 -> intensity + gradient magnitude" << endl;
+  cout_help() << " " << "3 -> intensity + X and Y gradients" <<endl;
+  
+  cout_help() << "--descriptor_size" << "Descriptor size for M-LDB in bits." << endl;
+  cout_help() << " " << "0: means the full length descriptor (486)!!" << endl;
+  cout_help() << endl;
+  // Save results?
+  cout_help() << "--show_results" << "Possible values below:" << endl;
+  cout_help() << " " << "1 -> show detection results." << endl;
+  cout_help() << " " << "0 -> don't show detection results" << endl;
+  cout_help() << endl;
 }

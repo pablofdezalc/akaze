@@ -251,8 +251,8 @@ void AKAZE::Compute_Multiscale_Derivatives(void) {
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-  for (size_t i = 0; i < evolution_.size(); i++) {
-    float ratio = pow(2,evolution_[i].octave);
+  for (int i = 0; i < evolution_.size(); i++) {
+    float ratio = pow(2.f,evolution_[i].octave);
     int sigma_size_ = fRound(evolution_[i].esigma*factor_size_/ratio);
 
     compute_scharr_derivatives(evolution_[i].Lsmooth,evolution_[i].Lx,1,0,sigma_size_);
@@ -578,7 +578,7 @@ void AKAZE::Compute_Descriptors(std::vector<cv::KeyPoint> &kpts, cv::Mat &desc) 
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-    for (size_t i = 0; i < kpts.size(); i++) {
+    for (int i = 0; i < kpts.size(); i++) {
       Get_SURF_Descriptor_Upright_64(kpts[i],desc.ptr<float>(i));
     }
   }
@@ -588,7 +588,7 @@ void AKAZE::Compute_Descriptors(std::vector<cv::KeyPoint> &kpts, cv::Mat &desc) 
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-    for (size_t i = 0; i < kpts.size(); i++) {
+    for (int i = 0; i < kpts.size(); i++) {
       Compute_Main_Orientation_SURF(kpts[i]);
       Get_SURF_Descriptor_64(kpts[i],desc.ptr<float>(i));
     }
@@ -599,7 +599,7 @@ void AKAZE::Compute_Descriptors(std::vector<cv::KeyPoint> &kpts, cv::Mat &desc) 
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-    for (size_t i = 0; i < kpts.size(); i++) {
+    for (int i = 0; i < kpts.size(); i++) {
       Get_MSURF_Upright_Descriptor_64(kpts[i],desc.ptr<float>(i));
     }
   }
@@ -609,7 +609,7 @@ void AKAZE::Compute_Descriptors(std::vector<cv::KeyPoint> &kpts, cv::Mat &desc) 
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-    for (size_t i = 0; i < kpts.size(); i++) {
+    for (int i = 0; i < kpts.size(); i++) {
       Compute_Main_Orientation_SURF(kpts[i]);
       Get_MSURF_Descriptor_64(kpts[i],desc.ptr<float>(i));
     }
@@ -620,7 +620,7 @@ void AKAZE::Compute_Descriptors(std::vector<cv::KeyPoint> &kpts, cv::Mat &desc) 
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-    for (size_t i = 0; i < kpts.size(); i++) {
+    for (int i = 0; i < kpts.size(); i++) {
       if (descriptor_size_ == 0)
         Get_Upright_MLDB_Full_Descriptor(kpts[i],desc.ptr<unsigned char>(i));
       else
@@ -633,7 +633,7 @@ void AKAZE::Compute_Descriptors(std::vector<cv::KeyPoint> &kpts, cv::Mat &desc) 
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-    for (size_t i = 0; i < kpts.size(); i++) {
+    for (int i = 0; i < kpts.size(); i++) {
       Compute_Main_Orientation_SURF(kpts[i]);
       if (descriptor_size_ == 0)
         Get_MLDB_Full_Descriptor(kpts[i],desc.ptr<unsigned char>(i));
@@ -1863,12 +1863,12 @@ void AKAZE::Get_Upright_MLDB_Descriptor_Subset(const cv::KeyPoint &kpt, unsigned
 void AKAZE::Save_Scale_Space(void) {
 
   cv::Mat img_aux;
-  char cad[NMAX_CHAR];
+  string cad;
 
   for (size_t i = 0; i < evolution_.size(); i++) {
     convert_scale(evolution_[i].Lt);
     evolution_[i].Lt.convertTo(img_aux,CV_8U,255.0,0);
-    sprintf(cad,"../output/evolution%02d.jpg",(int)i);
+    cad = "../output/evolution_" + to_formatted_string(i, 2) + ".jpg";
     imwrite(cad,img_aux);
   }
 }
@@ -1883,7 +1883,7 @@ void AKAZE::Save_Scale_Space(void) {
 void AKAZE::Save_Detector_Responses(void) {
 
   Mat img_aux;
-  char cad[NMAX_CHAR];
+  string cad;
   float ttime = 0.0;
   int nimgs = 0;
 
@@ -1892,7 +1892,7 @@ void AKAZE::Save_Detector_Responses(void) {
     if (ttime > 0) {
       convert_scale(evolution_[i].Ldet);
       evolution_[i].Ldet.convertTo(img_aux,CV_8U,255.0,0);
-      sprintf(cad,"../../output/images/detector_%02d.jpg",nimgs);
+      cad = "../output/images/detector_" + to_formatted_string(nimgs, 2) + ".jpg";
       imwrite(cad,img_aux);
       nimgs++;
     } // if ttime
@@ -1915,9 +1915,6 @@ void AKAZE::Show_Computation_Times(void) {
   cout << "   - Time Subpixel: " << tsubpixel_ << endl;
   cout << "(*) Time Descriptor: " << tdescriptor_ << endl;
 }
-
-//*************************************************************************************
-//*************************************************************************************
 
 /**
  * @brief This function computes a (quasi-random) list of bits to be taken
@@ -1966,7 +1963,7 @@ void generateDescriptorSubsample(cv::Mat& sampleList, cv::Mat& comparisons, size
     }
   }
 
-  srandom(1024);
+  srand(1024);
   Mat_<int> comps = cv::Mat_<int>(nchannels*ceil(nbits/(float)nchannels),2);
   comps = 1000;
 
@@ -1978,7 +1975,7 @@ void generateDescriptorSubsample(cv::Mat& sampleList, cv::Mat& comparisons, size
   samples = -1;
 
   for (size_t i=0; i<npicks; i++) {
-    size_t k = random() % (fullM.rows-i);
+    size_t k = rand() % (fullM.rows-i);
 
     if (i < 6) {
       // Force use of the coarser grid values and comparisons

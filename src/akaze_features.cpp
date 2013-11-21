@@ -18,253 +18,134 @@
  * accelerated nonlinear scale space
  * @date Sep 16, 2013
  * @author Pablo F. Alcantarilla, Jesus Nuevo
+ *
+ * Modification:
+ * 16/11/2013: David Ok (david.ok8@gmail.com)
+ *
  */
 
 #include "akaze_features.h"
+#include "cmdLine.h"
 
-// Namespaces
 using namespace std;
 using namespace cv;
 
-//*************************************************************************************
-//*************************************************************************************
-
-/** Main Function 																	 */
-int main( int argc, char *argv[] ) {
-
+int main( int argc, char *argv[] )
+{
   // Variables
   AKAZEOptions options;
-  Mat img, img_32, img_rgb;
-  char img_name[NMAX_CHAR], kfile[NMAX_CHAR];
+  string image_path, key_path;
+
+  // Variable for computation times.
   double t1 = 0.0, t2 = 0.0, tdet = 0.0, tdesc = 0.0;
 
   // Parse the input command line options
-  if (parse_input_options(options,img_name,kfile,argc,argv)) {
+  if(!parse_input_options(options, image_path, key_path, argc, argv))
+    return -1;
+  if (options.verbosity)
+  {
+    cout << "Check AKAZE options:" << endl;
+    cout << options << endl;
+  }
+
+  // Try to read the image and if necessary convert to grayscale.
+  Mat img = imread(image_path, 0);
+  if (img.data == NULL)
+  {
+    cout << "Error: cannot load image from file:" << endl << image_path << endl;
     return -1;
   }
 
-  // Read the image, force to be grey scale
-  img = imread(img_name,0);
-
-  if (img.data == NULL) {
-    cout << "Error loading image: " << img_name << endl;
-    return -1;
-  }
-
-  // Convert the image to float
+  // Convert the image to float to extract features.
+  Mat img_32;
   img.convertTo(img_32,CV_32F,1.0/255.0,0);
-  img_rgb = cv::Mat(Size(img.cols,img.rows),CV_8UC3);
-  std::vector<cv::KeyPoint> kpts;
-
+  // Don't forget to specify image dimensions in AKAZE's options.
   options.img_width = img.cols;
   options.img_height = img.rows;
 
-  // Create the AKAZE object
-  AKAZE evolution(options);
-
+  // Extract features.
+  std::vector<cv::KeyPoint> kpts;
   t1 = cv::getTickCount();
-
-  // Create the Gaussian scale space
+  AKAZE evolution(options);
   evolution.Create_Nonlinear_Scale_Space(img_32);
   evolution.Feature_Detection(kpts);
-
   t2 = cv::getTickCount();
   tdet = 1000.0*(t2-t1) / cv::getTickFrequency();
 
+  // Compute descriptors.
   cv::Mat desc;
-
-  // Compute descriptors
   t1 = cv::getTickCount();
-
   evolution.Compute_Descriptors(kpts,desc);
-
   t2 = cv::getTickCount();
   tdesc = 1000.0*(t2-t1) / cv::getTickFrequency();
 
+  // Summarize the computation times.
   evolution.Show_Computation_Times();
   evolution.Save_Scale_Space();
-
   cout << "Number of points: " << kpts.size() << endl;
-  cout << "Time Detector: " << tdet << endl;
-  cout << "Time Descriptor: " << tdesc << endl;
+  cout << "Time Detector: " << tdet << " ms" << endl;
+  cout << "Time Descriptor: " << tdesc << " ms" << endl;
 
-  // Save keypoints to a txt file
-  if (options.save_keypoints == true) {
-    save_keypoints(kfile,kpts,desc,true);
-  }
+  // Save keypoints in ASCII format.
+  if (!key_path.empty())
+    save_keypoints(&key_path[0],kpts,desc,true);
 
+  // Check out the result visually.
+  Mat img_rgb = cv::Mat(Size(img.cols,img.rows),CV_8UC3);
   cvtColor(img,img_rgb,CV_GRAY2BGR);
   draw_keypoints(img_rgb,kpts);
-
-  imshow("image.jpg",img_rgb);
+  imshow(image_path, img_rgb);
   waitKey(0);
 }
 
-//*************************************************************************************
-//*************************************************************************************
+bool parse_input_options(AKAZEOptions& options,
+                         std::string& image_filename,
+                         std::string& keypoint_filename,
+                         int argc, char *argv[])
+{
+  keypoint_filename.clear();
+  image_filename.clear();
 
-/**
- * @brief This function parses the command line arguments for setting KAZE parameters
- * @param options Structure that contains KAZE settings
- * @param img_name Name of the input image
- * @param kfile Name of the file where the keypoints where be stored
- */
-int parse_input_options(AKAZEOptions &options, char *img_name, char *kfile, int argc, char *argv[]) {
+  // Create command line options.
+  CmdLine cmdLine;
+  cmdLine.add(make_switch('h', "help"));
+  // Verbose option for debug.
+  cmdLine.add(make_option('v', options.verbosity, "verbose"));
+  // Image file name.
+  cmdLine.add(make_option('i', image_filename, "image"));
+  // Scale-space parameters.
+  cmdLine.add(make_option('O', options.omax, "omax"));
+  cmdLine.add(make_option('S', options.nsublevels, "nsublevels"));
+  cmdLine.add(make_option('s', options.soffset, "soffset"));
+  cmdLine.add(make_option('d', options.sderivatives, "sderivatives"));
+  cmdLine.add(make_option('g', options.diffusivity, "diffusivity"));
+  // Detection parameters.
+  cmdLine.add(make_option('t', options.dthreshold, "dthreshold"));
+  // Descriptor parameters.
+  cmdLine.add(make_option('D', options.descriptor, "descriptor"));
+  cmdLine.add(make_option('C', options.descriptor_channels, "descriptor_channels"));
+  cmdLine.add(make_option('F', options.descriptor_size, "descriptor_size"));
+  // Save the keypoints.
+  cmdLine.add(make_option('o', keypoint_filename, "output"));
+  // Save scale-space
+  cmdLine.add(make_option('w', options.save_scale_space, "save_scale_space"));
 
-  // If there is only one argument return
-  if (argc == 1) {
-    show_input_options_help(0);
-    return -1;
-  }
-  // Set the options from the command line
-  else if (argc >= 2)
+  // Try to process
+  try
   {
-    options = AKAZEOptions();
+    if (argc == 1)
+      throw std::string("Invalid command line parameter.");
 
-    strcpy(kfile,"../output/files/keypoints.txt");
+    cmdLine.process(argc, argv);
 
-    if( !strcmp(argv[1],"--help") )
-    {
-      show_input_options_help(0);
-      return -1;
-    }
-
-    strcpy(img_name,argv[1]);
-
-    for (int i = 2; i < argc; i++) {
-      if (!strcmp(argv[i],"--soffset")) {
-        i = i+1;
-        if (i >= argc) {
-          cout << "Error introducing input options!!" << endl;
-          return -1;
-        }
-        else {
-          options.soffset = atof(argv[i]);
-        }
-      }
-      else if (!strcmp(argv[i],"--omax")) {
-        i = i+1;
-        if ( i >= argc ) {
-          cout << "Error introducing input options!!" << endl;
-          return -1;
-        }
-        else {
-          options.omax = atof(argv[i]);
-        }
-      }
-      else if (!strcmp(argv[i],"--dthreshold")) {
-        i = i+1;
-        if (i >= argc) {
-          cout << "Error introducing input options!!" << endl;
-          return -1;
-        }
-        else {
-          options.dthreshold = atof(argv[i]);
-        }
-      }
-      else if (!strcmp(argv[i],"--sderivatives")) {
-        i = i+1;
-        if (i >= argc) {
-          cout << "Error introducing input options!!" << endl;
-          return -1;
-        }
-        else {
-          options.sderivatives = atof(argv[i]);
-        }
-      }
-      else if (!strcmp(argv[i],"--nsublevels")) {
-        i = i+1;
-        if (i >= argc) {
-          cout << "Error introducing input options!!" << endl;
-          return -1;
-        }
-        else {
-          options.nsublevels = atoi(argv[i]);
-        }
-      }
-      else if (!strcmp(argv[i],"--diffusivity")) {
-        i = i+1;
-        if (i >= argc) {
-          cout << "Error introducing input options!!" << endl;
-          return -1;
-        }
-        else {
-          options.diffusivity = atoi(argv[i]);
-        }
-      }
-      else if (!strcmp(argv[i],"--descriptor")) {
-        i = i+1;
-        if (i >= argc) {
-          cout << "Error introducing input options!!" << endl;
-          return -1;
-        }
-        else {
-          options.descriptor = atoi(argv[i]);
-
-          if (options.descriptor < 0 || options.descriptor > MLDB) {
-            options.descriptor = MLDB;
-          }
-        }
-      }
-      else if (!strcmp(argv[i],"--descriptor_channels")) {
-        i = i+1;
-        if (i >= argc) {
-          cout << "Error introducing input options!!" << endl;
-          return -1;
-        }
-        else {
-          options.descriptor_channels = atoi(argv[i]);
-
-          if (options.descriptor_channels <= 0 || options.descriptor_channels > 3) {
-            options.descriptor_channels = 3;
-          }
-        }
-      }
-      else if (!strcmp(argv[i],"--descriptor_size")) {
-        i = i+1;
-        if (i >= argc) {
-          cout << "Error introducing input options!!" << endl;
-          return -1;
-        }
-        else {
-          options.descriptor_size = atoi(argv[i]);
-
-          if (options.descriptor_size < 0) {
-            options.descriptor_size = 0;
-          }
-        }
-      }
-      else if (!strcmp(argv[i],"--save_scale_space")) {
-        i = i+1;
-        if (i >= argc) {
-          cout << "Error introducing input options!!" << endl;
-          return -1;
-        }
-        else {
-          options.save_scale_space = (bool)atoi(argv[i]);
-        }
-      }
-      else if (!strcmp(argv[i],"--verbose")) {
-        options.verbosity = true;
-      }
-      else if (!strcmp(argv[i],"--output")) {
-        options.save_keypoints = true;
-        i = i+1;
-        if (i >= argc) {
-          cout << "Error introducing input options!!" << endl;
-          return -1;
-        }
-        else {
-          strcpy(kfile,argv[i]);
-        }
-      }
-      else if (!strcmp(argv[i],"--help")) {
-        // Show the help!!
-        show_input_options_help(0);
-        return -1;
-      }
-    }
+    if (!cmdLine.used('i'))
+      throw std::string("Invalid command line parameter.");
+  }
+  catch(const std::string& s)
+  {
+    show_input_options_help(0);
+    return false;
   }
 
-  return 0;
+  return true;
 }
