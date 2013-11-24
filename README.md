@@ -142,7 +142,6 @@ Number of Keypoints Image 1: 1823
 Number of Keypoints Image 2: 2373
 A-KAZE Features Extraction Time (ms): 304.796
 Matching Descriptors Time (ms): 54.1619
-Homography Computation Time (ms): 2.15611
 Number of Matches: 1283
 Number of Inliers: 1047
 Number of Outliers: 236
@@ -168,7 +167,6 @@ For example, running kaze_compare with the first and third images from the boat 
                 ../../datasets/boat/img3.pgm
                 ../../datasets/boat/H1to3p
                 --dthreshold 0.004
-                --descriptor 5
 ```
 
 ```
@@ -180,7 +178,7 @@ Number of Matches: 304
 Number of Inliers: 277
 Number of Outliers: 27
 Inliers Ratio: 91.1184
-ORB Features Extraction Time (ms): 74.603
+ORB Features Extraction Time (ms): 62.7292
 
 BRISK Results
 **************************************
@@ -190,17 +188,17 @@ Number of Matches: 159
 Number of Inliers: 116
 Number of Outliers: 43
 Inliers Ratio: 72.956
-BRISK Features Extraction Time (ms): 482.781
+BRISK Features Extraction Time (ms): 311.954
 
 A-KAZE Results
 **************************************
-Number of Keypoints Image 1: 1549
-Number of Keypoints Image 2: 1193
-Number of Matches: 414
-Number of Inliers: 351
-Number of Outliers: 63
-Inliers Ratio: 84.7826
-A-KAZE Features Extraction Time (ms): 230.502
+Number of Keypoints Image 1: 2129
+Number of Keypoints Image 2: 1668
+Number of Matches: 766
+Number of Inliers: 688
+Number of Outliers: 78
+Inliers Ratio: 89.8172
+A-KAZE Features Extraction Time (ms): 519.336
 ```
 
 **A-KAZE features** is **open source** and you can use that **freely even in commercial applications**. The code is released under BSD license.
