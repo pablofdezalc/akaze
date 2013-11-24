@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
 
   // Variables for measuring computation times
   double t1 = 0.0, t2 = 0.0;
-  double takaze = 0.0, tmatch = 0.0, thomo = 0.0;
+  double takaze = 0.0, tmatch = 0.0;
 
   // Parse the input command line options
   if (parse_input_options(options,img_path1,img_path2,homography_path,argc,argv)) {
@@ -122,8 +122,6 @@ int main(int argc, char *argv[]) {
   tmatch = 1000.0*(t2 - t1)/cv::getTickFrequency();
 
   // Compute Inliers!!
-  t1 = getTickCount();
-
   matches2points_nndr(kpts1,kpts2,dmatches,matches,DRATIO);
 
   if (COMPUTE_INLIERS_RANSAC == false) {
@@ -132,9 +130,6 @@ int main(int argc, char *argv[]) {
   else {
     compute_inliers_ransac(matches,inliers,MIN_H_ERROR,false);
   }
-
-  t2 = getTickCount();
-  thomo = 1000.0*(t2 - t1)/getTickFrequency();
 
   // Compute the inliers statistics
   nmatches = matches.size()/2;
@@ -151,7 +146,6 @@ int main(int argc, char *argv[]) {
   cout << "Number of Keypoints Image 2: " << nkpts2 << endl;
   cout << "A-KAZE Features Extraction Time (ms): " << takaze << endl;
   cout << "Matching Descriptors Time (ms): " << tmatch << endl;
-  cout << "Homography Computation Time (ms): " << thomo << endl;
   cout << "Number of Matches: " << nmatches << endl;
   cout << "Number of Inliers: " << ninliers << endl;
   cout << "Number of Outliers: " << noutliers << endl;
@@ -227,16 +221,6 @@ int parse_input_options(AKAZEOptions& options, std::string& img_path1, std::stri
         }
         else {
           options.dthreshold = atof(argv[i]);
-        }
-      }
-      else if (!strcmp(argv[i],"--dthreshold2")) {
-        i = i+1;
-        if (i >= argc) {
-          cerr << "Error introducing input options!!" << endl;
-          return -1;
-        }
-        else {
-          options.dthreshold2 = atof(argv[i]);
         }
       }
       else if (!strcmp(argv[i],"--sderivatives")) {

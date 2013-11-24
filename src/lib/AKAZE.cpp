@@ -63,7 +63,7 @@ AKAZE::AKAZE(const AKAZEOptions& options) {
 
   if (descriptor_size_ > 0 && descriptor_ >= MLDB_UPRIGHT) {
     generateDescriptorSubsample(descriptorSamples_,descriptorBits_,descriptor_size_,
-                                descriptor_pattern_size_, descriptor_channels_);
+                                descriptor_pattern_size_,descriptor_channels_);
   }
 
   Allocate_Memory_Evolution();
@@ -1926,8 +1926,8 @@ void AKAZE::Show_Computation_Times(void) {
  * @note The function keeps the 18 bits (3-channels by 6 comparisons) of the
  * coarser grid, since it provides the most robust estimations
  */
-void generateDescriptorSubsample(cv::Mat& sampleList, cv::Mat& comparisons, size_t nbits,
-                                 size_t pattern_size, size_t nchannels) {
+void generateDescriptorSubsample(cv::Mat& sampleList, cv::Mat& comparisons, int nbits,
+                                 int pattern_size, int nchannels) {
 
   size_t ssz = 0;
   for (int i=0; i<3; i++) {

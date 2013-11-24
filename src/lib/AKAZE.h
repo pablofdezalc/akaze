@@ -22,8 +22,7 @@
 //*************************************************************************************
 
 // AKAZE Class Declaration
-class AKAZE
-{
+class AKAZE {
 
 private:
 
@@ -38,9 +37,11 @@ private:
   float sderivatives_;     // Standard deviation of the Gaussian for the nonlinear diff. derivatives
   float kcontrast_;        // The contrast parameter for the scalar nonlinear diffusion
   float dthreshold_;       // Feature detector threshold response
-  int diffusivity_;        // Diffusivity type, 0->PM G1, 1->PM G2, 2-> Weickert
-  int descriptor_;     // Descriptor mode
-  bool use_upright_;	// Set to true in case we want to use the upright version of the descriptors
+  int diffusivity_;        // Diffusivity type, 0->PM G1, 1->PM G2, 2-> Weickert, 3->Charbonnier
+  int descriptor_;         // Descriptor mode:
+                           // 0-> SURF_UPRIGHT, 1->SURF
+                           // 2-> M-SURF_UPRIGHT, 3->M-SURF
+                           // 4-> M-LDB_UPRIGHT, 5->M-LDB
   int descriptor_size_;    // Size of the descriptor in bits. Use 0 for the full descriptor
   int descriptor_pattern_size_;    // Size of the pattern. Actual size sampled is 2*pattern_size
   int descriptor_channels_;        // Number of channels to consider in the M-LDB descriptor
@@ -160,15 +161,9 @@ public:
  */
 void setDefaultAKAZEOptions(AKAZEOptions& options);
 
-/**
- * @brief This function prints default parameters for the A-KAZE detector.
- * @param options AKAZE options
- */
-void printAKAZEOptions(const AKAZEOptions& options);
-
 // Inline functions
 void generateDescriptorSubsample(cv::Mat& sampleList, cv::Mat& comparisons,
-                                 size_t nbits, size_t pattern_size, size_t nchannels);
+                                 int nbits, int pattern_size, int nchannels);
 float get_angle(float x, float y);
 float gaussian(float x, float y, float sigma);
 void check_descriptor_limits(int& x, int& y, const int width, const int height);

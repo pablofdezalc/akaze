@@ -1,62 +1,34 @@
-A-KAZE Features
-==========
+## README - A-KAZE Features
 
-## Code Documentation
+Version: 1.1.0
+Date: 24-11-2013
 
-See http://davidok8.github.io/AKAZE/index.html
-
-## Introduction
-
-From the web page: http://www.robesafe.com/personal/pablo.alcantarilla/kaze.html
-
-"**KAZE Features** is a novel 2D feature detection and description method that operates completely in a nonlinear scale space. Previous methods such as SIFT or SURF find features in the Gaussian scale space (particular instance of linear diffusion). However, Gaussian blurring does not respect the natural boundaries of objects and smoothes in the same degree details and noise when evolving the original image through the scale space.
-
-By means of nonlinear diffusion we can detect and describe features in nonlinear scale spaces keeping important image details and removing noise as long as we evolve the image in the scale space. We use variable conductance diffusion which is one of the simplest cases of nonlinear diffusion. The nonlinear scale space is build efficiently by means of Additive Operator Splitting (AOS) schemes, which are stable for any step size and are parallelizable.
-
-**Accelerated-KAZE Features** uses a novel mathematical framework called **Fast Explicit Diffusion (FED)** embedded in a pyramidal framework to speed-up dramatically the nonlinear scale space computation. In addition, we compute a robust **Modified-Local Difference Binary (M-LDB)** descriptor that exploits gradient information from the nonlinear scale space. A-KAZE obtains comparable results to KAZE in some datasets, while being several orders of magnitude faster.
-
-Our results reveal a big improvement in repeatability and distinctiviness, for common 2D image matching applications.
-
-**Important**: If you work in a research institution, university, company or you are a freelance and you are using KAZE or A-KAZE in your work, please let [Pablo F. Alcantarilla] know and send [him] an email...
-[Pablo F. Alcantarilla] would like to know the people that are using KAZE around the world!!"
-
-email: pablofdezalc@gmail.com
-
+You can get the latest version of the code from github:
+`https://github.com/pablofdezalc/akaze`
 
 ## CHANGELOG
+Version: 1.1.0
+Changes:
+- Code style has been changed substantially to match portability with other libraries
+- Small bug has been corrected in generateDescriptorSubsample for the random bit selection
+- Several modifications proposed from Jesus Nuevo, Pierre Moulon and David Ok have been integrated
+- Descriptor modes have changed. No longer use of use_upright flag
 
-**Version: 1.0.0_DO_1** [Source code slightly modified by _David OK (david.ok8@gmail.com)_]
-- Date: 18-10-2013
-- Changes:
-  * Code cleaning, moved DOXYGEN comments to header files.
-  * Minor fix
-  * Created separate library for utils[.h, .cpp]
-- TODO:
-  * Re-add `-ffast-math` for UNIX-based system?
-  * Remove warnings.
-  * Generate shared library instead?
+## What is this file?
 
-**Version: 1.0.0_DO** [Source code slightly modified by _David OK (david.ok8@gmail.com)_]
-- Date: 17-10-2013
-- Changes:
-  * Modified slightly source code to compile it with **MSVC 11 x64** and **OpenMP**.
-  * Modified `CMakeLists.txt` to generate static library instead of shared library.
-  * Removed C support in `CMakeLists.txt` because the source code uses the C++ STL.
-  * Added CMake module in order to enable **SSE features** in a **cross-platform** fashion.
-  * Added Doxygen documentation generation in `CMakeLists.txt`
-- TODO:
-  * Test the A-KAZE works correctly.
-  * Re-add `-ffast-math` for UNIX-based system?
-  * Remove warnings.
-  * Generate shared library instead?
+This file explains how to make use of source code for computing A-KAZE features and
+two practical image matching applications
 
+## Library Dependencies
 
-**Version: 1.0.0**
-- Date: 16-09-2013
-- Changes:
-  * Initial Release
+The code is mainly based on the OpenCV library using the C++ interface
 
+In order to compile the code, the following libraries to be installed on your system:
+- OpenCV version 2.4.0 or higher
+- Cmake version 2.6 or higher
 
+If you want to use OpenMP parallelization you will need to install OpenMP in your system
+In Linux you can do this by installing the gomp library
 ## Library Dependencies
 
 The code is mainly based on the **OpenCV** library using the C++ interface.
@@ -124,8 +96,9 @@ used. Here is a description of the additional options:
 - `--nsublevels`: number of sublevels per octave
 - `--diffusivity`: diffusivity function `0` -> Perona-Malik 1, `1` -> Perona-Malik 2, `2` -> Weickert
 - `--dthreshold`: Feature detector threshold response for accepting points
-- `--descriptor`: Descriptor Type `0` -> SURF, `1` -> M-SURF, `2` -> M-LDB
-- `--upright`: `0` -> Rotation Invariant, `1` -> No Rotation Invariant
+- `--descriptor`: Descriptor Type, 0-> SURF_UPRIGHT, 1->SURF
+                                   2-> M-SURF_UPRIGHT, 3->M-SURF
+                                   4-> M-LDB_UPRIGHT, 5->M-LDB
 - `--descriptor_channels`: Descriptor Channels for M-LDB. Valid values: 1, 2 (intensity+gradient magnitude), 3(intensity + X and Y gradients)
 - `--descriptor_size`: Descriptor size for M-LDB in bits. 0 means the full length descriptor (486). Any other value will use a random bit selection
 - `--show_results`: `1` in case we want to show detection results. `0` otherwise
@@ -161,19 +134,19 @@ the following results:
 ./akaze_match ../../datasets/iguazu/img1.pgm 
               ../../datasets/iguazu/img4.pgm 
               ../../datasets/iguazu/H1to4p
-              --descriptor 2
+              --descriptor 4
 ```
 
 ```
-Number of Keypoints Image 1: 1137
-Number of Keypoints Image 2: 1046
-KAZE Features Extraction Time (ms): 228.145
-Matching Descriptors Time (ms): 41.3758
-Homography Computation Time (ms): 0.028648
-Number of Matches: 665
-Number of Inliers: 605
-Number of Outliers: 60
-Inliers Ratio: 90.9774
+Number of Keypoints Image 1: 1823
+Number of Keypoints Image 2: 2373
+A-KAZE Features Extraction Time (ms): 304.796
+Matching Descriptors Time (ms): 54.1619
+Homography Computation Time (ms): 2.15611
+Number of Matches: 1283
+Number of Inliers: 1047
+Number of Outliers: 236
+Inliers Ratio: 81.6056
 ```
 
 ## Image Matching Comparison between A-KAZE, ORB and BRISK (OpenCV)
@@ -195,10 +168,7 @@ For example, running kaze_compare with the first and third images from the boat 
                 ../../datasets/boat/img3.pgm
                 ../../datasets/boat/H1to3p
                 --dthreshold 0.004
-                --dthreshold2 0.004
-                --diffusivity 1
-                --descriptor 2
-                --nsublevels 3
+                --descriptor 5
 ```
 
 ```
@@ -233,7 +203,9 @@ Inliers Ratio: 84.7826
 A-KAZE Features Extraction Time (ms): 230.502
 ```
 
-**A-KAZE features** is **open source** and you can use that **freely even in commercial applications**. While A-KAZE is a bit slower compared to **ORB** and **BRISK**, it provides much better performance. In addition, for images with small resolution such as 640x480 the algorithm can run in real-time. In the next future we plan to release a GPGPU implementation.
+**A-KAZE features** is **open source** and you can use that **freely even in commercial applications**. The code is released under BSD license.
+While A-KAZE is a bit slower compared to **ORB** and **BRISK**, it provides much better performance. In addition, for images with small resolution such as 640x480 the algorithm can
+run in real-time. In the next future we plan to release a GPGPU implementation.
 
 ## Citation
 
@@ -245,7 +217,11 @@ If you use this code as part of your work, please cite the following papers:
 
 ## Contact Info
 
-In case you have any question, find any bug in the code or want to share some improvements, please contact:
+**Important**: If you work in a research institution, university, company or you are a freelance and you are using KAZE or A-KAZE in your work, please send me an email!!
+I would like to know the people that are using KAZE and A-KAZE around the world!!"
+
+In case you have any question, find any bug in the code or want to share some improvements,
+please contact me:
+
 Pablo F. Alcantarilla
 email: pablofdezalc@gmail.com
-
