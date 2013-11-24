@@ -1929,7 +1929,7 @@ void AKAZE::Show_Computation_Times(void) {
 void generateDescriptorSubsample(cv::Mat& sampleList, cv::Mat& comparisons, int nbits,
                                  int pattern_size, int nchannels) {
 
-  size_t ssz = 0;
+  int ssz = 0;
   for (int i=0; i<3; i++) {
     int gz = (i+2)*(i+2);
     ssz += gz*(gz-1)/2;
