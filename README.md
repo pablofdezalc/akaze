@@ -13,6 +13,7 @@ Changes:
 - Small bug has been corrected in generateDescriptorSubsample for the random bit selection
 - Several modifications proposed from Jesus Nuevo, Pierre Moulon and David Ok have been integrated
 - Descriptor modes have changed. No longer use of use_upright flag
+- Python interface added by David Ok
 
 ## What is this file?
 
