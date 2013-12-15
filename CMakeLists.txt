@@ -98,10 +98,3 @@ if(DOXYGEN_FOUND)
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Generating API documentation with Doxygen" VERBATIM)
 endif(DOXYGEN_FOUND)
-
-# ============================================================================ #
-foreach(dir ${DIRS})
-  FILE(GLOB files ${dir}/*.h*)
-  LIST(APPEND h_files ${files})
-endforeach(dir)
-add_custom_target(TAGS etags --members -l c++ ${h_files} ${SRCS})
