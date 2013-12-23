@@ -251,7 +251,7 @@ void AKAZE::Compute_Multiscale_Derivatives(void) {
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-  for (size_t i = 0; i < evolution_.size(); i++) {
+  for (int i = 0; i < evolution_.size(); i++) {
     float ratio = pow(2.f,evolution_[i].octave);
     int sigma_size_ = fRound(evolution_[i].esigma*factor_size_/ratio);
 
@@ -574,7 +574,7 @@ void AKAZE::Compute_Descriptors(std::vector<cv::KeyPoint>& kpts, cv::Mat& desc) 
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-      for (size_t i = 0; i < kpts.size(); i++) {
+      for (int i = 0; i < kpts.size(); i++) {
         Get_SURF_Descriptor_Upright_64(kpts[i],desc.ptr<float>(i));
       }
     }
@@ -584,7 +584,7 @@ void AKAZE::Compute_Descriptors(std::vector<cv::KeyPoint>& kpts, cv::Mat& desc) 
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-      for (size_t i = 0; i < kpts.size(); i++) {
+      for (int i = 0; i < kpts.size(); i++) {
         Compute_Main_Orientation_SURF(kpts[i]);
         Get_SURF_Descriptor_64(kpts[i],desc.ptr<float>(i));
       }
@@ -595,7 +595,7 @@ void AKAZE::Compute_Descriptors(std::vector<cv::KeyPoint>& kpts, cv::Mat& desc) 
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-      for (size_t i = 0; i < kpts.size(); i++) {
+      for (int i = 0; i < kpts.size(); i++) {
         Get_MSURF_Upright_Descriptor_64(kpts[i],desc.ptr<float>(i));
       }
     }
@@ -605,7 +605,7 @@ void AKAZE::Compute_Descriptors(std::vector<cv::KeyPoint>& kpts, cv::Mat& desc) 
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-      for (size_t i = 0; i < kpts.size(); i++) {
+      for (int i = 0; i < kpts.size(); i++) {
         Compute_Main_Orientation_SURF(kpts[i]);
         Get_MSURF_Descriptor_64(kpts[i],desc.ptr<float>(i));
       }
@@ -616,7 +616,7 @@ void AKAZE::Compute_Descriptors(std::vector<cv::KeyPoint>& kpts, cv::Mat& desc) 
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-      for (size_t i = 0; i < kpts.size(); i++) {
+      for (int i = 0; i < kpts.size(); i++) {
         if (descriptor_size_ == 0)
           Get_Upright_MLDB_Full_Descriptor(kpts[i],desc.ptr<unsigned char>(i));
         else
@@ -629,7 +629,7 @@ void AKAZE::Compute_Descriptors(std::vector<cv::KeyPoint>& kpts, cv::Mat& desc) 
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-      for (size_t i = 0; i < kpts.size(); i++) {
+      for (int i = 0; i < kpts.size(); i++) {
         Compute_Main_Orientation_SURF(kpts[i]);
         if (descriptor_size_ == 0)
           Get_MLDB_Full_Descriptor(kpts[i],desc.ptr<unsigned char>(i));
