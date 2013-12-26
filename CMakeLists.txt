@@ -1,16 +1,20 @@
-# ============================================================================ #
+project(AKAZE_features)
+
 cmake_minimum_required (VERSION 2.6)
 if (COMMAND cmake_policy)
   cmake_policy(SET CMP0003 NEW)
 endif ()
-
-project (AKAZE_features)
 
 # ============================================================================ #
 # Where to output binaries and libraries
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/bin")
+
+# ============================================================================ #
+# Where to install the AKAZE library
+set(AKAZE_INSTALL_PREFIX "/usr/local/akaze/lib" CACHE PATH "Installation Directory")
+set(AKAZE_INCLUDE_PREFIX "/usr/local/akaze/include" CACHE PATH "Includes Directory")
 
 # ============================================================================ #
 # Find external libraries and dependencies
@@ -21,12 +25,7 @@ endif ()
 find_package(Doxygen)
 
 # ============================================================================ #
-
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib")
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/bin")
-set(CMAKE_BUILD_TYPE Release)
-
+# Compilation flags
 IF(UNIX)
   SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -g -O0  -Wall -Wextra -Wunused-variable -DDEBUG -D_DEBUG")
   SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -O0 -g  -Wall -Wextra -Wunused-variable -DDEBUG -D_DEBUG")
@@ -59,6 +58,7 @@ set(AKAZE_SRCS
     src/lib/fed.h                    src/lib/fed.cpp
     src/lib/nldiffusion_functions.h  src/lib/nldiffusion_functions.cpp
     src/lib/utils.h                  src/lib/utils.cpp)
+
 add_library(AKAZE ${AKAZE_SRCS})
 target_link_libraries(AKAZE ${OpenCV_LIBS})
 
@@ -79,7 +79,7 @@ target_link_libraries(akaze_compare AKAZE)
 
 # ============================================================================ #
 # Library installation
-install(TARGETS AKAZE DESTINATION /usr/local/akaze/lib)
+install(TARGETS AKAZE DESTINATION ${AKAZE_INSTALL_PREFIX})
 install(FILES
     src/lib/AKAZE.h
     src/lib/fed.h
@@ -87,7 +87,7 @@ install(FILES
     src/lib/nldiffusion_functions.h
     src/lib/config.h
     DESTINATION
-    /usr/local/akaze/include
+    ${AKAZE_INCLUDE_PREFIX}
 )
 
 # ============================================================================ #
