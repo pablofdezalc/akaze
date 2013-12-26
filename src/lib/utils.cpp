@@ -258,10 +258,10 @@ void compute_inliers_ransac(const std::vector<cv::Point2f>& matches,
   }
 
   if (use_fund == true){
-    H = findFundamentalMat(points1,points2,CV_FM_RANSAC,error,0.99,status);
+    H = findFundamentalMat(points1,points2,cv::FM_RANSAC,error,0.99,status);
   }
   else {
-    H = findHomography(points1,points2,CV_RANSAC,error,status);
+    H = findHomography(points1,points2,cv::RANSAC,error,status);
   }
 
   for (int i = 0; i < npoints; i++) {
@@ -351,7 +351,7 @@ void draw_inliers(const cv::Mat& img1, const cv::Mat& img2, cv::Mat& img_com,
 
   // This is in case the input images don't have the same resolution
   Mat img_aux = Mat(Size(img1.cols,img1.rows),CV_8UC3);
-  resize(img2,img_aux,Size(img1.cols,img1.rows),0,0,CV_INTER_LINEAR);
+  resize(img2,img_aux,Size(img1.cols,img1.rows),0,0,cv::INTER_LINEAR);
 
   for (int i = 0; i < img_com.rows; i++) {
     for (int j = 0; j < img_com.cols; j++) {
@@ -405,7 +405,7 @@ void draw_inliers(const cv::Mat& img1, const cv::Mat& img2, cv::Mat& img_com,
 
   // This is in case the input images don't have the same resolution
   Mat img_aux = Mat(Size(img1.cols,img1.rows),CV_8UC3);
-  resize(img2,img_aux,Size(img1.cols,img1.rows),0,0,CV_INTER_LINEAR);
+  resize(img2,img_aux,Size(img1.cols,img1.rows),0,0,cv::INTER_LINEAR);
 
   for (int i = 0; i < img_com.rows; i++) {
     for (int j = 0; j < img_com.cols; j++) {
