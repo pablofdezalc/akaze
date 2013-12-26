@@ -30,16 +30,6 @@ In order to compile the code, the following libraries to be installed on your sy
 
 If you want to use OpenMP parallelization you will need to install OpenMP in your system
 In Linux you can do this by installing the gomp library
-## Library Dependencies
-
-The code is mainly based on the **OpenCV** library using the C++ interface.
-
-In order to compile the code, the following libraries to be installed on your system:
-- **OpenCV version 2.4.0 or higher**
-- **CMake version 2.6 or higher**
-
-If you want to use **OpenMP** parallelization you will need to install OpenMP in your system
-In Linux you can do this by installing the **gomp** library
 
 You will also need **doxygen** in case you need to generate the documentation
 
