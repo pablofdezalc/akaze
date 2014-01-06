@@ -6,21 +6,16 @@
  * @author Pablo F. Alcantarilla, Jesus Nuevo
  */
 
-#ifndef _AKAZE_H_
-#define _AKAZE_H_
+#pragma once
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 // Includes
 #include "config.h"
 #include "fed.h"
 #include "utils.h"
 #include "nldiffusion_functions.h"
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 // AKAZE Class Declaration
 class AKAZE {
 
@@ -78,42 +73,48 @@ public:
   ~AKAZE(void);
 
   // Setters
-  void Set_Octave_Max(const int& omax) {
+  void Set_Octave_Max(int omax) {
     omax_ = omax;
   }
-  void Set_NSublevels(const int& nsublevels) {
+  void Set_NSublevels(int nsublevels) {
     nsublevels_ = nsublevels;
   }
-  void Set_Save_Scale_Space_Flag(const bool& save_scale_space) {
+  void Set_Save_Scale_Space_Flag(bool save_scale_space) {
     save_scale_space_ = save_scale_space;
   }
-  void Set_Image_Width(const int& img_width) {
+  void Set_Image_Width(int img_width) {
     img_width_ = img_width;
   }
-  void Set_Image_Height(const int& img_height) {
+  void Set_Image_Height(int img_height) {
     img_height_ = img_height;
   }
 
   // Getters
-  int Get_Image_Width(void) {
+  int Get_Image_Width(void) const {
     return img_width_;
   }
-  int Get_Image_Height(void) {
+
+  int Get_Image_Height(void) const {
     return img_height_;
   }
-  double Get_Time_KContrast(void) {
+
+  double Get_Time_KContrast(void) const {
     return tkcontrast_;
   }
-  double Get_Time_Scale_Space(void) {
+
+  double Get_Time_Scale_Space(void) const {
     return tscale_;
   }
-  double Get_Time_Derivatives(void) {
+
+  double Get_Time_Derivatives(void) const {
     return tderivatives_;
   }
-  double Get_Time_Detector(void) {
+
+  double Get_Time_Detector(void) const {
     return tdetector_;
   }
-  double Get_Time_Descriptor(void) {
+
+  double Get_Time_Descriptor(void) const {
     return tdescriptor_;
   }
 
@@ -125,35 +126,33 @@ public:
   void Compute_Multiscale_Derivatives(void);
   void Find_Scale_Space_Extrema(std::vector<cv::KeyPoint>& kpts);
   void Do_Subpixel_Refinement(std::vector<cv::KeyPoint>& kpts);
-  void Feature_Suppression_Distance(std::vector<cv::KeyPoint>& kpts, float mdist);
+  void Feature_Suppression_Distance(std::vector<cv::KeyPoint>& kpts, float mdist) const;
 
   // Feature description methods
   void Compute_Descriptors(std::vector<cv::KeyPoint>& kpts, cv::Mat& desc);
-  void Compute_Main_Orientation_SURF(cv::KeyPoint& kpt);
+  void Compute_Main_Orientation_SURF(cv::KeyPoint& kpt) const;
 
   // SURF Pattern Descriptor
-  void Get_SURF_Descriptor_Upright_64(const cv::KeyPoint& kpt, float *desc);
-  void Get_SURF_Descriptor_64(const cv::KeyPoint& kpt, float *desc);
+  void Get_SURF_Descriptor_Upright_64(const cv::KeyPoint& kpt, float *desc) const;
+  void Get_SURF_Descriptor_64(const cv::KeyPoint& kpt, float *desc) const;
 
   // M-SURF Pattern Descriptor
-  void Get_MSURF_Upright_Descriptor_64(const cv::KeyPoint& kpt, float *desc);
-  void Get_MSURF_Descriptor_64(const cv::KeyPoint& kpt, float *desc);
+  void Get_MSURF_Upright_Descriptor_64(const cv::KeyPoint& kpt, float *desc) const;
+  void Get_MSURF_Descriptor_64(const cv::KeyPoint& kpt, float *desc) const;
 
   // M-LDB Pattern Descriptor
-  void Get_Upright_MLDB_Full_Descriptor(const cv::KeyPoint& kpt, unsigned char *desc);
-  void Get_MLDB_Full_Descriptor(const cv::KeyPoint& kpt, unsigned char *desc);
+  void Get_Upright_MLDB_Full_Descriptor(const cv::KeyPoint& kpt, unsigned char *desc) const;
+  void Get_MLDB_Full_Descriptor(const cv::KeyPoint& kpt, unsigned char *desc) const;
   void Get_Upright_MLDB_Descriptor_Subset(const cv::KeyPoint& kpt, unsigned char *desc);
   void Get_MLDB_Descriptor_Subset(const cv::KeyPoint& kpt, unsigned char *desc);
 
   // Methods for saving some results and showing computation times
   void Save_Scale_Space(void);
   void Save_Detector_Responses(void);
-  void Show_Computation_Times(void);
+  void Show_Computation_Times(void) const;
 };
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 // Inline functions
 /**
  * @brief This function sets default parameters for the A-KAZE detector.
@@ -168,8 +167,3 @@ float get_angle(float x, float y);
 float gaussian(float x, float y, float sigma);
 void check_descriptor_limits(int& x, int& y, const int width, const int height);
 int fRound(float flt);
-
-//*************************************************************************************
-//*************************************************************************************
-
-#endif

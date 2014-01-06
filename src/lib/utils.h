@@ -1,10 +1,13 @@
+/**
+ * @file utils.h
+ * @brief Some utilities functions
+ * @date Sep 15, 2013
+ * @author Pablo F. Alcantarilla, Jesus Nuevo
+ */
 
-#ifndef _UTILS_H_
-#define _UTILS_H_
+#pragma once
 
-//******************************************************************************
-//******************************************************************************
-
+/* ************************************************************************* */
 // OpenCV Includes
 #include <opencv2/opencv.hpp>
 #include <opencv2/features2d/features2d.hpp>
@@ -20,9 +23,7 @@
 #include <iostream>
 #include <iomanip>
 
-//******************************************************************************
-//******************************************************************************
-
+/* ************************************************************************* */
 // Stringify common types such as int, double and others.
 template <typename T>
 inline std::string to_string(const T& x) {
@@ -31,9 +32,7 @@ inline std::string to_string(const T& x) {
   return oss.str();
 }
 
-//******************************************************************************
-//******************************************************************************
-
+/* ************************************************************************* */
 // Stringify and format integral types as follows:
 // to_formatted_string(  1, 2) produces string:  '01'
 // to_formatted_string(  5, 2) produces string:  '05'
@@ -46,9 +45,7 @@ inline std::string to_formatted_string(Integer x, int num_digits) {
   return oss.str();
 }
 
-//******************************************************************************
-//******************************************************************************
-
+/* ************************************************************************* */
 void compute_min_32F(const cv::Mat& src, float& value);
 void compute_max_32F(const cv::Mat& src, float& value);
 void convert_scale(cv::Mat& src);
@@ -76,7 +73,3 @@ void draw_inliers(const cv::Mat& img1, const cv::Mat& img2, cv::Mat& img_com,
 void read_homography(const std::string& hFile, cv::Mat& H1toN);
 void show_input_options_help(int example);
 
-//******************************************************************************
-//******************************************************************************
-
-#endif

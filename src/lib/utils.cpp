@@ -26,9 +26,7 @@
 using namespace std;
 using namespace cv;
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This function computes the minimum value of a float image
  * @param src Input image
@@ -49,9 +47,7 @@ void compute_min_32F(const cv::Mat &src, float &value) {
   value = aux;
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This function computes the maximum value of a float image
  * @param src Input image
@@ -72,9 +68,7 @@ void compute_max_32F(const cv::Mat &src, float &value) {
   value = aux;
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This function converts the scale of the input image prior to visualization
  * @param src Input/Output image
@@ -92,9 +86,7 @@ void convert_scale(cv::Mat &src) {
   src = src / max_val;
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This function copies the input image and converts the scale of the copied
  * image prior visualization
@@ -114,9 +106,7 @@ void copy_and_convert_scale(const cv::Mat &src, cv::Mat dst) {
   dst = dst / max_val;
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This function draws the list of detected keypoints
  * @param img Input image
@@ -136,9 +126,7 @@ void draw_keypoints(cv::Mat &img, const std::vector<cv::KeyPoint> &kpts) {
   }
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief  This function saves the interest points to a regular ASCII file
  * @note The format is compatible with Mikolajczyk and Schmid evaluation
@@ -202,9 +190,7 @@ int save_keypoints(const string& outFile, const std::vector<cv::KeyPoint>& kpts,
   return 0;
 }
 
-//*******************************************************************************
-//*******************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This function converts matches to points using nearest neighbor distance
  * ratio matching strategy
@@ -232,9 +218,7 @@ void matches2points_nndr(const std::vector<cv::KeyPoint>& train,
   }
 }
 
-//*******************************************************************************
-//*******************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This function computes the set of inliers estimating the fundamental matrix
  * or a planar homography in a RANSAC procedure
@@ -272,9 +256,7 @@ void compute_inliers_ransac(const std::vector<cv::Point2f>& matches,
   }
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This function computes the set of inliers given a ground truth homography
  * @param matches Vector of putative matches
@@ -324,9 +306,7 @@ void compute_inliers_homography(const std::vector<cv::Point2f>& matches,
   }
 }
 
-//*******************************************************************************
-//*******************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This function draws the set of the inliers between the two images
  * @param img1 First image
@@ -377,9 +357,7 @@ void draw_inliers(const cv::Mat& img1, const cv::Mat& img2, cv::Mat& img_com,
   }
 }
 
-//*******************************************************************************
-//*******************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This function draws the set of the inliers between the two images
  * @param img1 First image
@@ -440,9 +418,7 @@ void draw_inliers(const cv::Mat& img1, const cv::Mat& img2, cv::Mat& img_com,
   }
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief Function for reading the ground truth homography from a txt file
  * @param calib_file Name of the txt file that contains the ground truth data
@@ -490,22 +466,19 @@ void read_homography(const string& hFile, cv::Mat& H1toN) {
   H1toN.at<float>(2,2) = h33 / h33;
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 const size_t length = string("--descriptor_channels").size() + 2;
-static inline std::ostream& cout_help()
-{ cout << setw(length); return cout; }
+static inline std::ostream& cout_help() {
+  cout << setw(length);
+  return cout;
+}
 
-static inline std::string toUpper(std::string s)
-{
+static inline std::string toUpper(std::string s) {
   std::transform(s.begin(), s.end(), s.begin(), ::toupper);
   return s;
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This function shows the possible command line configuration options
  */
@@ -514,6 +487,7 @@ void show_input_options_help(int example) {
   fflush(stdout);
   cout << "A-KAZE Features" << endl;
   cout << "Usage: ";
+
   if (example == 0) {
     cout << "./akaze_features -i img.jpg [options]" << endl;
   }
@@ -526,12 +500,15 @@ void show_input_options_help(int example) {
   
   cout << endl;
   cout_help() << "Options below are not mandatory. Unless specified, default arguments are used." << endl << endl;  
+
   // Justify on the left
   cout << left;
+
   // Generalities
   cout_help() << "--help" << "Show the command line options" << endl;
   cout_help() << "--verbose " << "Verbosity is required" << endl;
   cout_help() << endl;
+
   // Scale-space parameters
   cout_help() << "--soffset" << "Base scale offset (sigma units)" << endl;
   cout_help() << "--omax" << "Maximum octave of image evolution" << endl;
@@ -542,10 +519,13 @@ void show_input_options_help(int example) {
   cout_help() << " " << "2 -> Weickert diffusivity" << endl;
   cout_help() << " " << "3 -> Charbonnier diffusivity" << endl;
   cout_help() << endl;
+
   // Feature detection parameters.
   cout_help() << "--dthreshold" << "Feature detector threshold response for keypoints" << endl;
   cout_help() << " " << "(0.001 can be a good value)" << endl;
   cout_help() << endl;
+  cout_help() << endl;
+
   // Descriptor parameters.
   cout_help() << "--descriptor" << "Descriptor Type. Possible values:" << endl;
   cout_help() << " " << "0 -> SURF_UPRIGHT" << endl;
@@ -554,15 +534,18 @@ void show_input_options_help(int example) {
   cout_help() << " " << "3 -> M-SURF" << endl;
   cout_help() << " " << "4 -> M-LDB_UPRIGHT" << endl;
   cout_help() << " " << "5 -> M-LDB" << endl;
-  
+  cout_help() << endl;
+
   cout_help() << "--descriptor_channels " << "Descriptor Channels for M-LDB. Valid values: " << endl;
   cout_help() << " " << "1 -> intensity" << endl;
   cout_help() << " " << "2 -> intensity + gradient magnitude" << endl;
   cout_help() << " " << "3 -> intensity + X and Y gradients" <<endl;
-  
+  cout_help() << endl;
+
   cout_help() << "--descriptor_size" << "Descriptor size for M-LDB in bits." << endl;
   cout_help() << " " << "0: means the full length descriptor (486)!!" << endl;
   cout_help() << endl;
+
   // Save results?
   cout_help() << "--show_results" << "Possible values below:" << endl;
   cout_help() << " " << "1 -> show detection results." << endl;

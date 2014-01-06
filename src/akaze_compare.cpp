@@ -25,9 +25,7 @@
 using namespace std;
 using namespace cv;
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 int main(int argc, char *argv[]) {
 
   // Variables
@@ -114,8 +112,7 @@ int main(int argc, char *argv[]) {
   // Read the homography file
   read_homography(homography_path,HG);
 
-  //*************************************************************************************
-  //*************************************************************************************
+/* ************************************************************************* */
 
   // ORB Features
   //*****************
@@ -123,7 +120,7 @@ int main(int argc, char *argv[]) {
                                             ORB_EDGE_THRESHOLD,ORB_FIRST_PYRAMID_LEVEL,ORB_WTA_K,ORB_PATCH_SIZE);
   orb_descriptor = new cv::OrbDescriptorExtractor();
 
-  t1 = getTickCount();
+  t1 = cv::getTickCount();
 
   orb_detector->detect(img1,kpts1_orb);
   orb_detector->detect(img2,kpts2_orb);
@@ -150,8 +147,8 @@ int main(int argc, char *argv[]) {
   noutliers_orb = nmatches_orb-ninliers_orb;
   ratio_orb = 100.0*(float)(ninliers_orb)/(float)(nmatches_orb);
 
-  t2 = getTickCount();
-  torb = 1000.0*(t2-t1) / getTickFrequency();
+  t2 = cv::getTickCount();
+  torb = 1000.0*(t2-t1) / cv::getTickFrequency();
 
   cvtColor(img1,img1_rgb_orb,CV_GRAY2BGR);
   cvtColor(img2,img2_rgb_orb,CV_GRAY2BGR);
@@ -171,12 +168,11 @@ int main(int argc, char *argv[]) {
   cout << "ORB Features Extraction Time (ms): " << torb << endl;
   cout << endl;
 
-  //*************************************************************************************
-  //*************************************************************************************
+/* ************************************************************************* */
 
   // BRISK Features
   //*****************
-  t1 = getTickCount();
+  t1 = cv::getTickCount();
 
   dbrisk(img1,noArray(),kpts1_brisk,desc1_brisk,false);
   dbrisk(img2,noArray(),kpts2_brisk,desc2_brisk,false);
@@ -199,8 +195,8 @@ int main(int argc, char *argv[]) {
   noutliers_brisk = nmatches_brisk-ninliers_brisk;
   ratio_brisk = 100.0*(float)(ninliers_brisk)/(float)(nmatches_brisk);
 
-  t2 = getTickCount();
-  tbrisk = 1000.0*(t2-t1) / getTickFrequency();
+  t2 = cv::getTickCount();
+  tbrisk = 1000.0*(t2-t1) / cv::getTickFrequency();
 
   cvtColor(img1,img1_rgb_brisk,CV_GRAY2BGR);
   cvtColor(img2,img2_rgb_brisk,CV_GRAY2BGR);
@@ -220,8 +216,7 @@ int main(int argc, char *argv[]) {
   cout << "BRISK Features Extraction Time (ms): " << tbrisk << endl;
   cout << endl;
 
-  //*************************************************************************************
-  //*************************************************************************************
+/* ************************************************************************* */
 
   // A-KAZE Features
   //*******************
@@ -233,7 +228,7 @@ int main(int argc, char *argv[]) {
   options.img_height = img2.rows;
   AKAZE evolution2(options);
 
-  t1 = getTickCount();
+  t1 = cv::getTickCount();
 
   evolution1.Create_Nonlinear_Scale_Space(img1_32);
   evolution1.Feature_Detection(kpts1_akaze);
@@ -263,8 +258,8 @@ int main(int argc, char *argv[]) {
     compute_inliers_ransac(matches_akaze,inliers_akaze,MIN_H_ERROR,false);
   }
 
-  t2 = getTickCount();
-  takaze = 1000.0*(t2-t1)/getTickFrequency();
+  t2 = cv::getTickCount();
+  takaze = 1000.0*(t2-t1)/cv::getTickFrequency();
 
   nmatches_akaze = matches_akaze.size()/2;
   ninliers_akaze = inliers_akaze.size()/2;
@@ -296,9 +291,7 @@ int main(int argc, char *argv[]) {
   waitKey(0);
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This function parses the command line arguments for setting KAZE parameters
  * and image matching between two input images

@@ -24,9 +24,7 @@
 using namespace std;
 using namespace cv;
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This function smoothes an image with a Gaussian kernel
  * @param src Input image
@@ -59,9 +57,7 @@ void gaussian_2D_convolution(const cv::Mat& src, cv::Mat& dst, const size_t& ksi
   GaussianBlur(src,dst,Size(ksize_x_,ksize_y_),sigma,sigma,BORDER_REPLICATE);
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This function computes image derivatives with Scharr kernel
  * @param src Input image
@@ -78,9 +74,7 @@ void image_derivatives_scharr(const cv::Mat& src, cv::Mat& dst,
   Scharr(src,dst,CV_32F,xorder,yorder,1.0,0,BORDER_DEFAULT);
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This function computes the Perona and Malik conductivity coefficient g1
  * g1 = exp(-|dL|^2/k^2)
@@ -93,9 +87,7 @@ void pm_g1(const cv::Mat& Lx, const cv::Mat& Ly, cv::Mat& dst, const float& k) {
   exp(-(Lx.mul(Lx)+Ly.mul(Ly))/(k*k),dst);
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This function computes the Perona and Malik conductivity coefficient g2
  * g2 = 1 / (1 + dL^2 / k^2)
@@ -108,9 +100,7 @@ void pm_g2(const cv::Mat& Lx, const cv::Mat& Ly, cv::Mat& dst, const float& k) {
   dst = 1.0/(1.0+(Lx.mul(Lx)+Ly.mul(Ly))/(k*k));
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This function computes Weickert conductivity coefficient gw
  * @param Lx First order image derivative in X-direction (horizontal)
@@ -128,9 +118,7 @@ void weickert_diffusivity(const cv::Mat& Lx, const cv::Mat& Ly, cv::Mat& dst, co
   dst = 1.0 - dst;
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This function computes Charbonnier conductivity coefficient gc
  * gc = 1 / sqrt(1 + dL^2 / k^2)
@@ -148,9 +136,7 @@ void charbonnier_diffusivity(const cv::Mat& Lx, const cv::Mat& Ly, cv::Mat& dst,
   dst = 1.0/ den;
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This function computes a good empirical value for the k contrast factor
  * given an input image, the percentile (0-1), the gradient scale and the number of
@@ -244,9 +230,7 @@ float compute_k_percentile(const cv::Mat& img, const float& perc, const float& g
   return kperc;
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This function computes Scharr image derivatives
  * @param src Input image
@@ -263,9 +247,7 @@ void compute_scharr_derivatives(const cv::Mat& src, cv::Mat& dst, const size_t& 
   sepFilter2D(src,dst,CV_32F,kx,ky);
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This function performs a scalar non-linear diffusion step
  * @param Ld2 Output image in the evolution
@@ -336,9 +318,7 @@ void nld_step_scalar(cv::Mat& Ld, const cv::Mat& c, cv::Mat& Lstep, const float&
   Ld = Ld + Lstep;
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This function downsamples the input image with the kernel [1/4,1/2,1/4]
  * @param img Input image to be downsampled
@@ -359,9 +339,7 @@ void downsample_image(const cv::Mat& src, cv::Mat& dst) {
   }
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This function downsamples the input image using OpenCV resize
  * @param img Input image to be downsampled
@@ -375,9 +353,7 @@ void halfsample_image(const cv::Mat& src, cv::Mat& dst) {
   resize(src,dst,dst.size(),0,0,cv::INTER_AREA);
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief Compute Scharr derivative kernels for sizes different than 3
  * @param kx_ The derivative kernel in x-direction
@@ -428,4 +404,44 @@ void compute_derivative_kernels(cv::OutputArray kx_, cv::OutputArray ky_,
     Mat temp(kernel->rows, kernel->cols, CV_32F, &kerI[0]);
     temp.copyTo(*kernel);
   }
+}
+
+/* ************************************************************************* */
+/**
+ * @brief This function checks if a given pixel is a maximum in a local neighbourhood
+ * @param img Input image where we will perform the maximum search
+ * @param dsize Half size of the neighbourhood
+ * @param value Response value at (x,y) position
+ * @param row Image row coordinate
+ * @param col Image column coordinate
+ * @param same_img Flag to indicate if the image value at (x,y) is in the input image
+ * @return 1->is maximum, 0->otherwise
+ */
+bool check_maximum_neighbourhood(const cv::Mat& img, int dsize, float value,
+                                 int row, int col, bool same_img) {
+
+  bool response = true;
+
+  for (int i = row-dsize; i <= row+dsize; i++) {
+    for (int j = col-dsize; j <= col+dsize; j++) {
+      if (i >= 0 && i < img.rows && j >= 0 && j < img.cols) {
+        if (same_img == true) {
+          if (i != row || j != col) {
+            if ((*(img.ptr<float>(i)+j)) > value) {
+              response = false;
+              return response;
+            }
+          }
+        }
+        else {
+          if ((*(img.ptr<float>(i)+j)) > value) {
+            response = false;
+            return response;
+          }
+        }
+      }
+    }
+  }
+
+  return response;
 }

@@ -24,9 +24,7 @@
 using namespace std;
 using namespace cv;
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 int main(int argc, char *argv[]) {
 
   // Variables
@@ -85,7 +83,7 @@ int main(int argc, char *argv[]) {
   options.img_height = img2.rows;
   AKAZE evolution2(options);
 
-  t1 = getTickCount();
+  t1 = cv::getTickCount();
 
   // Create the nonlinear scale space
   // and perform feature detection and description for image 1
@@ -97,7 +95,7 @@ int main(int argc, char *argv[]) {
   evolution2.Feature_Detection(kpts2);
   evolution2.Compute_Descriptors(kpts2,desc2);
 
-  t2 = getTickCount();
+  t2 = cv::getTickCount();
   takaze = 1000.0*(t2-t1)/getTickFrequency();
 
   nkpts1 = kpts1.size();
@@ -108,7 +106,7 @@ int main(int argc, char *argv[]) {
   Ptr<DescriptorMatcher> matcher_l2 = DescriptorMatcher::create("BruteForce");
   Ptr<DescriptorMatcher> matcher_l1 = DescriptorMatcher::create("BruteForce-Hamming");
 
-  t1 = getTickCount();
+  t1 = cv::getTickCount();
 
   if (options.descriptor < MLDB_UPRIGHT) {
     matcher_l2->knnMatch(desc1,desc2,dmatches,2);
@@ -118,8 +116,8 @@ int main(int argc, char *argv[]) {
     matcher_l1->knnMatch(desc1,desc2,dmatches,2);
   }
 
-  t2 = getTickCount();
-  tmatch = 1000.0*(t2 - t1)/cv::getTickFrequency();
+  t2 = cv::getTickCount();
+  tmatch = 1000.0*(t2 - t1)/ cv::getTickFrequency();
 
   // Compute Inliers!!
   matches2points_nndr(kpts1,kpts2,dmatches,matches,DRATIO);
@@ -158,9 +156,7 @@ int main(int argc, char *argv[]) {
   waitKey(0);
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This function parses the command line arguments for setting A-KAZE parameters
  * and image matching between two input images

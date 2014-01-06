@@ -25,9 +25,7 @@
 using namespace std;
 using namespace cv;
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 int main(int argc, char *argv[]) {
 
   // Variables
@@ -64,19 +62,19 @@ int main(int argc, char *argv[]) {
 
   // Extract features.
   vector<KeyPoint> kpts;
-  t1 = getTickCount();
+  t1 = cv::getTickCount();
   AKAZE evolution(options);
   evolution.Create_Nonlinear_Scale_Space(img_32);
   evolution.Feature_Detection(kpts);
-  t2 = getTickCount();
+  t2 = cv::getTickCount();
   tdet = 1000.0*(t2-t1) / getTickFrequency();
 
   // Compute descriptors.
   Mat desc;
-  t1 = getTickCount();
+  t1 = cv::getTickCount();
   evolution.Compute_Descriptors(kpts,desc);
-  t2 = getTickCount();
-  tdesc = 1000.0*(t2-t1) / getTickFrequency();
+  t2 = cv::getTickCount();
+  tdesc = 1000.0*(t2-t1) / cv::getTickFrequency();
 
   // Summarize the computation times.
   evolution.Show_Computation_Times();
@@ -97,9 +95,7 @@ int main(int argc, char *argv[]) {
   waitKey(0);
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This function parses the command line arguments for setting A-KAZE parameters
  * @param options Structure that contains A-KAZE settings

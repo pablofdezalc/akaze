@@ -1,9 +1,13 @@
-#ifndef _NLDIFFUSION_FUNCTIONS_H_
-#define _NLDIFFUSION_FUNCTIONS_H_
+/**
+ * @file nldiffusion_functions.h
+ * @brief Functions for nonlinear diffusion filtering applications
+ * @date Sep 15, 2013
+ * @author Pablo F. Alcantarilla, Jesus Nuevo
+ */
 
-//******************************************************************************
-//******************************************************************************
+#pragma once
 
+/* ************************************************************************* */
 // Includes
 #include <opencv2/opencv.hpp>
 
@@ -12,9 +16,7 @@
 # include <omp.h>
 #endif
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 // Declaration of functions
 void gaussian_2D_convolution(const cv::Mat& src, cv::Mat& dst, const size_t& ksize_x,
                              const size_t& ksize_y, const float& sigma);
@@ -33,9 +35,5 @@ void downsample_image(const cv::Mat& src, cv::Mat& dst);
 void halfsample_image(const cv::Mat& src, cv::Mat& dst);
 void compute_derivative_kernels(cv::OutputArray kx_, cv::OutputArray ky_,
                                 const size_t& dx, const size_t& dy, const size_t& scale);
-
-//*************************************************************************************
-//*************************************************************************************
-
-
-#endif
+bool check_maximum_neighbourhood(const cv::Mat& img, int dsize, float value,
+                                 int row, int col, bool same_img);

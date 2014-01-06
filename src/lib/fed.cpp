@@ -35,9 +35,7 @@
 
 using namespace std;
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This function allocates an array of the least number of time steps such
  * that a certain stopping time for the whole process can be obtained and fills
@@ -55,9 +53,7 @@ int fed_tau_by_process_time(const float& T, const int& M, const float& tau_max,
   return fed_tau_by_cycle_time(T/(float)M,tau_max,reordering,tau);
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This function allocates an array of the least number of time steps such
  * that a certain stopping time for the whole process can be obtained and fills it
@@ -74,16 +70,14 @@ int fed_tau_by_cycle_time(const float& t, const float& tau_max,
   float scale = 0.0;  // Ratio of t we search to maximal t
 
   // Compute necessary number of time steps
-  n = (int)(ceilf(sqrt(3.0*t/tau_max+0.25f)-0.5f-1.0e-8f)+ 0.5f);
+  n = (int)(ceil(sqrt(3.0*t/tau_max+0.25f)-0.5f-1.0e-8f)+ 0.5f);
   scale = 3.0*t/(tau_max*(float)(n*(n+1)));
 
   // Call internal FED time step creation routine
   return fed_tau_internal(n,scale,tau_max,reordering,tau);
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This function allocates an array of time steps and fills it with FED
  * time step sizes
@@ -116,7 +110,7 @@ int fed_tau_internal(const int& n, const float& scale, const float& tau_max,
 
   // Set up originally ordered tau vector
   for (int k = 0; k < n; ++k) {
-    float h = cosf(M_PI * (2.0f * (float)k + 1.0f) * c);
+    float h = cos(M_PI * (2.0f * (float)k + 1.0f) * c);
 
     if (reordering) {
       tauh[k] = d / (h * h);
@@ -155,9 +149,7 @@ int fed_tau_internal(const int& n, const float& scale, const float& tau_max,
   return n;
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This function checks if a number is prime or not
  * @param number Number to check if it is prime or not

@@ -25,9 +25,7 @@
 using namespace std;
 using namespace cv;
 
-//*******************************************************************************
-//*******************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief AKAZE constructor with input options
  * @param options AKAZE configuration options
@@ -69,9 +67,7 @@ AKAZE::AKAZE(const AKAZEOptions& options) {
   Allocate_Memory_Evolution();
 }
 
-//*******************************************************************************
-//*******************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief AKAZE destructor
 */
@@ -80,9 +76,7 @@ AKAZE::~AKAZE(void) {
   evolution_.clear();
 }
 
-//*******************************************************************************
-//*******************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This method allocates the memory for the nonlinear diffusion evolution
 */
@@ -97,8 +91,8 @@ void AKAZE::Allocate_Memory_Evolution(void) {
     level_height = (int)(img_height_*rfactor);
     level_width = (int)(img_width_*rfactor);
 
-    // Smallest possible octave
-    if (level_width < 80 || level_height < 40) {
+    // Smallest possible octave and allow one scale if the image is small
+    if ((level_width < 80 || level_height < 40) && i != 0) {
       noctaves_ = i;
       i = omax_;
       break;
@@ -127,7 +121,7 @@ void AKAZE::Allocate_Memory_Evolution(void) {
   // Allocate memory for the number of cycles and time steps
   for (size_t i = 1; i < evolution_.size(); i++) {
     int naux = 0;
-    std::vector<float> tau;
+    vector<float> tau;
     float ttime = 0.0;
     ttime = evolution_[i].etime-evolution_[i-1].etime;
     naux = fed_tau_by_process_time(ttime,1,0.25,reordering_,tau);
@@ -137,25 +131,23 @@ void AKAZE::Allocate_Memory_Evolution(void) {
   }
 }
 
-//*******************************************************************************
-//*******************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This method creates the nonlinear scale space for a given image
  * @param img Input image for which the nonlinear scale space needs to be created
  * @return 0 if the nonlinear scale space was created successfully, -1 otherwise
 */
-int AKAZE::Create_Nonlinear_Scale_Space(const cv::Mat &img) {
+int AKAZE::Create_Nonlinear_Scale_Space(const cv::Mat& img) {
 
   double t1 = 0.0, t2 = 0.0;
 
   if (evolution_.size() == 0) {
-    cout << "Error generating the nonlinear scale space!!" << endl;
-    cout << "Firstly you need to call AKAZE::Allocate_Memory_Evolution()" << endl;
+    cerr << "Error generating the nonlinear scale space!!" << endl;
+    cerr << "Firstly you need to call AKAZE::Allocate_Memory_Evolution()" << endl;
     return -1;
   }
 
-  t1 = getTickCount();
+  t1 = cv::getTickCount();
 
   // Copy the original image to the first level of the evolution
   img.copyTo(evolution_[0].Lt);
@@ -165,8 +157,8 @@ int AKAZE::Create_Nonlinear_Scale_Space(const cv::Mat &img) {
   // Firstly compute the kcontrast factor
   kcontrast_ = compute_k_percentile(img,KCONTRAST_PERCENTILE,1.0,KCONTRAST_NBINS,0,0);
 
-  t2 = getTickCount();
-  tkcontrast_ = 1000.0*(t2-t1) / getTickFrequency();
+  t2 = cv::getTickCount();
+  tkcontrast_ = 1000.0*(t2-t1) / cv::getTickFrequency();
 
   // Now generate the rest of evolution levels
   for (size_t i = 1; i < evolution_.size(); i++) {
@@ -200,7 +192,7 @@ int AKAZE::Create_Nonlinear_Scale_Space(const cv::Mat &img) {
         charbonnier_diffusivity(evolution_[i].Lx,evolution_[i].Ly,evolution_[i].Lflow,kcontrast_);
       break;
       default:
-        std::cerr << "Diffusivity: " << diffusivity_ << " is not supported" << std::endl;
+        cerr << "Diffusivity: " << diffusivity_ << " is not supported" << endl;
     }
 
     // Perform FED n inner steps
@@ -209,15 +201,13 @@ int AKAZE::Create_Nonlinear_Scale_Space(const cv::Mat &img) {
     }
   }
 
-  t2 = getTickCount();
-  tscale_ = 1000.0*(t2-t1) / getTickFrequency();
+  t2 = cv::getTickCount();
+  tscale_ = 1000.0*(t2-t1) / cv::getTickFrequency();
 
   return 0;
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This method selects interesting keypoints through the nonlinear scale space
  * @param kpts Vector of detected keypoints
@@ -226,19 +216,17 @@ void AKAZE::Feature_Detection(std::vector<cv::KeyPoint>& kpts) {
 
   double t1 = 0.0, t2 = 0.0;
 
-  t1 = getTickCount();
+  t1 = cv::getTickCount();
 
   Compute_Determinant_Hessian_Response();
   Find_Scale_Space_Extrema(kpts);
   Do_Subpixel_Refinement(kpts);
 
-  t2 = getTickCount();
-  tdetector_ = 1000.0*(t2-t1) / getTickFrequency();
+  t2 = cv::getTickCount();
+  tdetector_ = 1000.0*(t2-t1) / cv::getTickFrequency();
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This method computes the multiscale derivatives for the nonlinear scale space
 */
@@ -246,12 +234,12 @@ void AKAZE::Compute_Multiscale_Derivatives(void) {
 
   double t1 = 0.0, t2 = 0.0;
 
-  t1 = getTickCount();
+  t1 = cv::getTickCount();
 
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-  for (int i = 0; i < evolution_.size(); i++) {
+  for (int i = 0; i < (int)(evolution_.size()); i++) {
     float ratio = pow(2.f,evolution_[i].octave);
     int sigma_size_ = fRound(evolution_[i].esigma*factor_size_/ratio);
 
@@ -268,13 +256,11 @@ void AKAZE::Compute_Multiscale_Derivatives(void) {
     evolution_[i].Lyy = evolution_[i].Lyy*((sigma_size_)*(sigma_size_));
   }
 
-  t2 = getTickCount();
-  tderivatives_ = 1000.0*(t2-t1) / getTickFrequency();
+  t2 = cv::getTickCount();
+  tderivatives_ = 1000.0*(t2-t1) / cv::getTickFrequency();
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This method computes the feature detector response for the nonlinear scale space
  * @note We use the Hessian determinant as the feature detector response
@@ -300,9 +286,7 @@ void AKAZE::Compute_Determinant_Hessian_Response(void) {
   }
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This method finds extrema in the nonlinear scale space
  * @param kpts Vector of detected keypoints
@@ -326,7 +310,7 @@ void AKAZE::Find_Scale_Space_Extrema(std::vector<cv::KeyPoint>& kpts) {
     smax = 12.0*sqrtf(2.0);
   }
 
-  t1 = getTickCount();
+  t1 = cv::getTickCount();
 
   for (size_t i = 0; i < evolution_.size(); i++) {
     for (int ix = 1; ix < evolution_[i].Ldet.rows-1; ix++) {
@@ -346,8 +330,8 @@ void AKAZE::Find_Scale_Space_Extrema(std::vector<cv::KeyPoint>& kpts) {
             value > *(evolution_[i].Ldet.ptr<float>(ix+1)+jx-1) &&
             value > *(evolution_[i].Ldet.ptr<float>(ix+1)+jx) &&
             value > *(evolution_[i].Ldet.ptr<float>(ix+1)+jx+1)) {
-          is_extremum = true;
 
+          is_extremum = true;
           point.response = fabs(value);
           point.size = evolution_[i].esigma*factor_size_;
           point.octave = evolution_[i].octave;
@@ -377,6 +361,7 @@ void AKAZE::Find_Scale_Space_Extrema(std::vector<cv::KeyPoint>& kpts) {
 
           // Check out of bounds
           if (is_extremum == true) {
+
             // Check that the point is under the image limits for the descriptor computation
             left_x = fRound(point.pt.x-smax*sigma_size_)-1;
             right_x = fRound(point.pt.x+smax*sigma_size_) +1;
@@ -407,13 +392,11 @@ void AKAZE::Find_Scale_Space_Extrema(std::vector<cv::KeyPoint>& kpts) {
     } // for ix
   } // for i
 
-  t2 = getTickCount();
-  textrema_ = 1000.0*(t2-t1) / getTickFrequency();
+  t2 = cv::getTickCount();
+  textrema_ = 1000.0*(t2-t1) / cv::getTickFrequency();
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This method performs subpixel refinement of the detected keypoints
  * @param kpts Vector of detected keypoints
@@ -428,7 +411,7 @@ void AKAZE::Do_Subpixel_Refinement(std::vector<cv::KeyPoint>& kpts) {
   Mat b = Mat::zeros(2,1,CV_32F);
   Mat dst = Mat::zeros(2,1,CV_32F);
 
-  t1 = getTickCount();
+  t1 = cv::getTickCount();
 
   for (size_t i = 0; i < kpts.size(); i++) {
     ratio = pow(2.f,kpts[i].octave);
@@ -481,19 +464,17 @@ void AKAZE::Do_Subpixel_Refinement(std::vector<cv::KeyPoint>& kpts) {
     }
   }
 
-  t2 = getTickCount();
-  tsubpixel_ = 1000.0*(t2-t1) / getTickFrequency();
+  t2 = cv::getTickCount();
+  tsubpixel_ = 1000.0*(t2-t1) / cv::getTickFrequency();
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This method performs feature suppression based on 2D distance
  * @param kpts Vector of keypoints
  * @param mdist Maximum distance in pixels
 */
-void AKAZE::Feature_Suppression_Distance(std::vector<cv::KeyPoint>& kpts, float mdist) {
+void AKAZE::Feature_Suppression_Distance(std::vector<cv::KeyPoint>& kpts, float mdist) const {
 
   vector<KeyPoint> aux;
   vector<int> to_delete;
@@ -537,9 +518,7 @@ void AKAZE::Feature_Suppression_Distance(std::vector<cv::KeyPoint>& kpts, float 
   aux.clear();
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This method  computes the set of descriptors through the nonlinear scale space
  * @param kpts Vector of detected keypoints
@@ -549,7 +528,7 @@ void AKAZE::Compute_Descriptors(std::vector<cv::KeyPoint>& kpts, cv::Mat& desc) 
 
   double t1 = 0.0, t2 = 0.0;
 
-  t1 = getTickCount();
+  t1 = cv::getTickCount();
 
   // Allocate memory for the matrix with the descriptors
   if (descriptor_ < MLDB_UPRIGHT) {
@@ -574,7 +553,7 @@ void AKAZE::Compute_Descriptors(std::vector<cv::KeyPoint>& kpts, cv::Mat& desc) 
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-      for (int i = 0; i < kpts.size(); i++) {
+      for (int i = 0; i < (int)(kpts.size()); i++) {
         Get_SURF_Descriptor_Upright_64(kpts[i],desc.ptr<float>(i));
       }
     }
@@ -584,7 +563,7 @@ void AKAZE::Compute_Descriptors(std::vector<cv::KeyPoint>& kpts, cv::Mat& desc) 
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-      for (int i = 0; i < kpts.size(); i++) {
+      for (int i = 0; i < (int)(kpts.size()); i++) {
         Compute_Main_Orientation_SURF(kpts[i]);
         Get_SURF_Descriptor_64(kpts[i],desc.ptr<float>(i));
       }
@@ -595,7 +574,7 @@ void AKAZE::Compute_Descriptors(std::vector<cv::KeyPoint>& kpts, cv::Mat& desc) 
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-      for (int i = 0; i < kpts.size(); i++) {
+      for (int i = 0; i < (int)(kpts.size()); i++) {
         Get_MSURF_Upright_Descriptor_64(kpts[i],desc.ptr<float>(i));
       }
     }
@@ -605,7 +584,7 @@ void AKAZE::Compute_Descriptors(std::vector<cv::KeyPoint>& kpts, cv::Mat& desc) 
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-      for (int i = 0; i < kpts.size(); i++) {
+      for (int i = 0; i < (int)(kpts.size()); i++) {
         Compute_Main_Orientation_SURF(kpts[i]);
         Get_MSURF_Descriptor_64(kpts[i],desc.ptr<float>(i));
       }
@@ -616,7 +595,7 @@ void AKAZE::Compute_Descriptors(std::vector<cv::KeyPoint>& kpts, cv::Mat& desc) 
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-      for (int i = 0; i < kpts.size(); i++) {
+      for (int i = 0; i < (int)(kpts.size()); i++) {
         if (descriptor_size_ == 0)
           Get_Upright_MLDB_Full_Descriptor(kpts[i],desc.ptr<unsigned char>(i));
         else
@@ -629,7 +608,7 @@ void AKAZE::Compute_Descriptors(std::vector<cv::KeyPoint>& kpts, cv::Mat& desc) 
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-      for (int i = 0; i < kpts.size(); i++) {
+      for (int i = 0; i < (int)(kpts.size()); i++) {
         Compute_Main_Orientation_SURF(kpts[i]);
         if (descriptor_size_ == 0)
           Get_MLDB_Full_Descriptor(kpts[i],desc.ptr<unsigned char>(i));
@@ -640,20 +619,18 @@ void AKAZE::Compute_Descriptors(std::vector<cv::KeyPoint>& kpts, cv::Mat& desc) 
     break;
   }
 
-  t2 = getTickCount();
-  tdescriptor_ = 1000.0*(t2-t1) / getTickFrequency();
+  t2 = cv::getTickCount();
+  tdescriptor_ = 1000.0*(t2-t1) / cv::getTickFrequency();
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This method computes the main orientation for a given keypoint
  * @param kpt Input keypoint
  * @note The orientation is computed using a similar approach as described in the
  * original SURF method. See Bay et al., Speeded Up Robust Features, ECCV 2006
 */
-void AKAZE::Compute_Main_Orientation_SURF(cv::KeyPoint& kpt) {
+void AKAZE::Compute_Main_Orientation_SURF(cv::KeyPoint& kpt) const {
 
   int ix = 0, iy = 0, idx = 0, s = 0, level = 0;
   float xf = 0.0, yf = 0.0, gweight = 0.0, ratio = 0.0;
@@ -718,9 +695,7 @@ void AKAZE::Compute_Main_Orientation_SURF(cv::KeyPoint& kpt) {
   }
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This method computes the upright descriptor of the provided keypoint
  * @param kpt Input keypoint
@@ -728,7 +703,7 @@ void AKAZE::Compute_Main_Orientation_SURF(cv::KeyPoint& kpt) {
  * Gaussian weighting is performed. The descriptor is inspired from Bay et al.,
  * Speeded Up Robust Features, ECCV, 2006
 */
-void AKAZE::Get_SURF_Descriptor_Upright_64(const cv::KeyPoint& kpt, float *desc) {
+void AKAZE::Get_SURF_Descriptor_Upright_64(const cv::KeyPoint& kpt, float *desc) const {
 
   float dx = 0.0, dy = 0.0, mdx = 0.0, mdy = 0.0;
   float rx = 0.0, ry = 0.0, len = 0.0, xf = 0.0, yf = 0.0;
@@ -808,8 +783,7 @@ void AKAZE::Get_SURF_Descriptor_Upright_64(const cv::KeyPoint& kpt, float *desc)
   }
 }
 
-//*************************************************************************************
-//*************************************************************************************
+/* ************************************************************************* */
 /**
  * @brief This method computes the descriptor of the provided keypoint given the
  * main orientation
@@ -819,7 +793,7 @@ void AKAZE::Get_SURF_Descriptor_Upright_64(const cv::KeyPoint& kpt, float *desc)
  * Gaussian weighting is performed. The descriptor is inspired from Bay et al.,
  * Speeded Up Robust Features, ECCV, 2006
 */
-void AKAZE::Get_SURF_Descriptor_64(const cv::KeyPoint& kpt, float *desc) {
+void AKAZE::Get_SURF_Descriptor_64(const cv::KeyPoint& kpt, float *desc) const {
 
   float dx = 0.0, dy = 0.0, mdx = 0.0, mdy = 0.0;
   float rx = 0.0, ry = 0.0, rrx = 0.0, rry = 0.0, len = 0.0, xf = 0.0, yf = 0.0;
@@ -906,9 +880,7 @@ void AKAZE::Get_SURF_Descriptor_64(const cv::KeyPoint& kpt, float *desc) {
   }
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This method computes the upright descriptor (not rotation invariant) of
  * the provided keypoint
@@ -918,7 +890,7 @@ void AKAZE::Get_SURF_Descriptor_64(const cv::KeyPoint& kpt, float *desc) {
  * from Agrawal et al., CenSurE: Center Surround Extremas for Realtime Feature Detection and Matching,
  * ECCV 2008
 */
-void AKAZE::Get_MSURF_Upright_Descriptor_64(const cv::KeyPoint& kpt, float *desc) {
+void AKAZE::Get_MSURF_Upright_Descriptor_64(const cv::KeyPoint& kpt, float *desc) const {
 
   float dx = 0.0, dy = 0.0, mdx = 0.0, mdy = 0.0, gauss_s1 = 0.0, gauss_s2 = 0.0;
   float rx = 0.0, ry = 0.0, len = 0.0, xf = 0.0, yf = 0.0, ys = 0.0, xs = 0.0;
@@ -1029,9 +1001,7 @@ void AKAZE::Get_MSURF_Upright_Descriptor_64(const cv::KeyPoint& kpt, float *desc
   }
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This method computes the descriptor of the provided keypoint given the
  * main orientation of the keypoint
@@ -1041,7 +1011,7 @@ void AKAZE::Get_MSURF_Upright_Descriptor_64(const cv::KeyPoint& kpt, float *desc
  * from Agrawal et al., CenSurE: Center Surround Extremas for Realtime Feature Detection and Matching,
  * ECCV 2008
 */
-void AKAZE::Get_MSURF_Descriptor_64(const cv::KeyPoint& kpt, float *desc) {
+void AKAZE::Get_MSURF_Descriptor_64(const cv::KeyPoint& kpt, float *desc) const {
 
   float dx = 0.0, dy = 0.0, mdx = 0.0, mdy = 0.0, gauss_s1 = 0.0, gauss_s2 = 0.0;
   float rx = 0.0, ry = 0.0, rrx = 0.0, rry = 0.0, len = 0.0, xf = 0.0, yf = 0.0, ys = 0.0, xs = 0.0;
@@ -1156,16 +1126,14 @@ void AKAZE::Get_MSURF_Descriptor_64(const cv::KeyPoint& kpt, float *desc) {
   }
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This method computes the rupright descriptor (not rotation invariant) of
  * the provided keypoint
  * @param kpt Input keypoint
  * @param desc Descriptor vector
 */
-void AKAZE::Get_Upright_MLDB_Full_Descriptor(const cv::KeyPoint& kpt, unsigned char *desc) {
+void AKAZE::Get_Upright_MLDB_Full_Descriptor(const cv::KeyPoint& kpt, unsigned char *desc) const {
 
   float di = 0.0, dx = 0.0, dy = 0.0;
   float ri = 0.0, rx = 0.0, ry = 0.0, xf = 0.0, yf = 0.0;
@@ -1369,16 +1337,14 @@ void AKAZE::Get_Upright_MLDB_Full_Descriptor(const cv::KeyPoint& kpt, unsigned c
   }
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This method computes the descriptor of the provided keypoint given the
  * main orientation of the keypoint
  * @param kpt Input keypoint
  * @param desc Descriptor vector
 */
-void AKAZE::Get_MLDB_Full_Descriptor(const cv::KeyPoint& kpt, unsigned char *desc) {
+void AKAZE::Get_MLDB_Full_Descriptor(const cv::KeyPoint& kpt, unsigned char *desc) const {
 
   float di = 0.0, dx = 0.0, dy = 0.0, ratio = 0.0;
   float ri = 0.0, rx = 0.0, ry = 0.0, rrx = 0.0, rry = 0.0, xf = 0.0, yf = 0.0;
@@ -1670,9 +1636,7 @@ void AKAZE::Get_MLDB_Full_Descriptor(const cv::KeyPoint& kpt, unsigned char *des
   }
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This method computes the M-LDB descriptor of the provided keypoint given the
  * main orientation of the keypoint. The descriptor is computed based on a subset of
@@ -1715,6 +1679,7 @@ void AKAZE::Get_MLDB_Descriptor_Subset(const cv::KeyPoint& kpt, unsigned char *d
 
     for (int k = coords[1]; k < coords[1] + sample_step; k++) {
       for (int l = coords[2]; l < coords[2] + sample_step; l++) {
+
         // Get the coordinates of the sample point
         sample_y = yf + (l*scale*co + k*scale*si);
         sample_x = xf + (-l*scale*si + k*scale*co);
@@ -1762,9 +1727,7 @@ void AKAZE::Get_MLDB_Descriptor_Subset(const cv::KeyPoint& kpt, unsigned char *d
   }
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This method computes the upright (not rotation invariant) M-LDB descriptor
  * of the provided keypoint given the main orientation of the keypoint.
@@ -1848,9 +1811,7 @@ void AKAZE::Get_Upright_MLDB_Descriptor_Subset(const cv::KeyPoint& kpt, unsigned
   }
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This method saves the scale space into jpg images
 */
@@ -1867,9 +1828,7 @@ void AKAZE::Save_Scale_Space(void) {
   }
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This method saves the feature detector responses of the nonlinear scale space
  * into jpg images
@@ -1894,13 +1853,11 @@ void AKAZE::Save_Detector_Responses(void) {
 }
 
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This method displays the computation times
 */
-void AKAZE::Show_Computation_Times(void) {
+void AKAZE::Show_Computation_Times(void) const {
 
   cout << "(*) Time Scale Space: " << tscale_ << endl;
   cout << "(*) Time Detector: " << tdetector_ << endl;
@@ -1910,9 +1867,7 @@ void AKAZE::Show_Computation_Times(void) {
   cout << "(*) Time Descriptor: " << tdescriptor_ << endl;
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This function computes a (quasi-random) list of bits to be taken
  * from the full descriptor. To speed the extraction, the function creates
@@ -2029,9 +1984,7 @@ void generateDescriptorSubsample(cv::Mat& sampleList, cv::Mat& comparisons, int 
   comparisons = comps.rowRange(0,nbits).clone();
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This function computes the angle from the vector given by (X Y). From 0 to 2*Pi
 */
@@ -2056,9 +2009,7 @@ inline float get_angle(float x, float y) {
   return 0;
 }
 
-//**************************************************************************************
-//**************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This function computes the value of a 2D Gaussian function
  * @param x X Position
@@ -2070,9 +2021,7 @@ inline float gaussian(float x, float y, float sigma) {
   return expf(-(x*x+y*y)/(2.0f*sigma*sigma));
 }
 
-//**************************************************************************************
-//**************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This function checks descriptor limits
  * @param x X Position
@@ -2099,16 +2048,13 @@ inline void check_descriptor_limits(int &x, int &y, const int width, const int h
   }
 }
 
-//*************************************************************************************
-//*************************************************************************************
-
+/* ************************************************************************* */
 /**
  * @brief This funtion rounds float to nearest integer
  * @param flt Input float
  * @return dst Nearest integer
  */
-inline int fRound(float flt)
-{
+inline int fRound(float flt) {
   return (int)(flt+0.5f);
 }
 

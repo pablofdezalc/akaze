@@ -1,15 +1,24 @@
-#ifndef _CONFIG_H_
-#define _CONFIG_H_
+/**
+ * @file config.h
+ * @brief AKAZE configuration file
+ * @date Mar 27, 2013
+ * @author Pablo F. Alcantarilla, Jesus Nuevo
+ */
 
+#pragma once
+
+/* ************************************************************************* */
 // STL
 #include <string>
 #include <vector>
 #include <cmath>
 #include <bitset>
 #include <iomanip>
+
 // OpenCV
 #include <opencv2/opencv.hpp>
 #include <opencv2/features2d/features2d.hpp>
+
 // OpenMP
 #ifdef _OPENMP
 # include <omp.h>
@@ -26,7 +35,6 @@ const float gauss25[7][7] = {
   {0.00142946f,	0.00131956f,	0.00103800f,	0.00069579f,	0.00039744f,	0.00019346f,	0.00008024f}
 };
 
-
 // Scale Space parameters
 const float DEFAULT_SCALE_OFFSET = 1.60f;    // Base scale offset (sigma units)
 const float DEFAULT_FACTOR_SIZE = 1.5f;      // Factor for the multiscale derivatives
@@ -38,7 +46,6 @@ const float KCONTRAST_PERCENTILE = 0.7f;
 const int KCONTRAST_NBINS = 300;
 const float DEFAULT_SIGMA_SMOOTHING_DERIVATIVES = 1.0f;
 const float DEFAULT_KCONTRAST = .01f;
-
 
 // Detector Parameters
 const float DEFAULT_DETECTOR_THRESHOLD = 0.001f;           // Detector response threshold to accept point
@@ -67,8 +74,8 @@ const bool DEFAULT_SHOW_RESULTS = true; // For showing the output image with the
 const bool DEFAULT_SAVE_KEYPOINTS = false; // For saving the list of keypoints
 
 // Options structure
-struct AKAZEOptions
-{
+struct AKAZEOptions {
+
   int omin;
   int omax;
   int nsublevels;
@@ -87,8 +94,8 @@ struct AKAZEOptions
   bool save_keypoints;
   bool verbosity;
 
-  AKAZEOptions()
-  {
+  AKAZEOptions(void) {
+
     // Load the default options
     soffset = DEFAULT_SCALE_OFFSET;
     omax = DEFAULT_OCTAVE_MAX;
@@ -106,11 +113,11 @@ struct AKAZEOptions
   }
 
   friend std::ostream& operator<<(std::ostream& os,
-                                  const AKAZEOptions& akaze_options)
-  {
+                                  const AKAZEOptions& akaze_options) {
+
     os << std::left;
 #define CHECK_AKAZE_OPTION(option) \
-    os << std::setw(33) << #option << " =  " << option << std::endl
+  os << std::setw(33) << #option << " =  " << option << std::endl
 
     // Scale-space parameters.
     CHECK_AKAZE_OPTION(akaze_options.omax);
@@ -134,21 +141,18 @@ struct AKAZEOptions
   }
 };
 
-struct tevolution
-{
-	cv::Mat Lx, Ly;	// First order spatial derivatives
-	cv::Mat Lxx, Lxy, Lyy;	// Second order spatial derivatives
-	cv::Mat Lflow;	// Diffusivity image
-	cv::Mat Lt;	// Evolution image
-	cv::Mat Lsmooth; // Smoothed image
-	cv::Mat Lstep; // Evolution step update
-	cv::Mat Ldet; // Detector response
-	float etime;	// Evolution time
-	float esigma;	// Evolution sigma. For linear diffusion t = sigma^2 / 2
-  int octave;	// Image octave
-  int sublevel;	// Image sublevel in each octave
-	int sigma_size;	// Integer sigma. For computing the feature detector responses
+struct tevolution {
+  cv::Mat Lx, Ly;	// First order spatial derivatives
+  cv::Mat Lxx, Lxy, Lyy;	// Second order spatial derivatives
+  cv::Mat Lflow;	// Diffusivity image
+  cv::Mat Lt;	// Evolution image
+  cv::Mat Lsmooth; // Smoothed image
+  cv::Mat Lstep; // Evolution step update
+  cv::Mat Ldet; // Detector response
+  float etime;	// Evolution time
+  float esigma;	// Evolution sigma. For linear diffusion t = sigma^2 / 2
+  size_t octave;	// Image octave
+  size_t sublevel;	// Image sublevel in each octave
+  size_t sigma_size;	// Integer sigma. For computing the feature detector responses
 };
 
-
-#endif

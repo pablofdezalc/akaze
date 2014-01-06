@@ -6,6 +6,10 @@ if (COMMAND cmake_policy)
 endif ()
 
 # ============================================================================ #
+# Build Type. By default is release
+set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: Debug, Release")
+
+# ============================================================================ #
 # Where to output binaries and libraries
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib")
@@ -60,7 +64,7 @@ set(AKAZE_SRCS
     src/lib/utils.h                  src/lib/utils.cpp)
 
 add_library(AKAZE ${AKAZE_SRCS})
-target_link_libraries(AKAZE ${OpenCV_LIBS})
+target_link_libraries(AKAZE ${OpenCV_LIBS} gomp)
 
 # Feature detector program
 add_executable(akaze_features
