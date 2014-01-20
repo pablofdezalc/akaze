@@ -7,7 +7,7 @@ endif ()
 
 # ============================================================================ #
 # Build Type. By default is release
-set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: Debug, Release")
+set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: Debug, Release" FORCE)
 
 # ============================================================================ #
 # Where to output binaries and libraries
