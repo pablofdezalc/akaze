@@ -489,7 +489,7 @@ void show_input_options_help(int example) {
   cout << "Usage: ";
 
   if (example == 0) {
-    cout << "./akaze_features -i img.jpg [options]" << endl;
+    cout << "./akaze_features img.jpg [options]" << endl;
   }
   else if (example == 1) {
     cout << "./akaze_match img1.jpg img2.pgm homography.txt [options]" << endl;
