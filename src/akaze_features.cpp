@@ -20,10 +20,19 @@
  * @author Pablo F. Alcantarilla, Jesus Nuevo
  */
 
-#include "akaze_features.h"
+#include "AKAZE.h"
 
 using namespace std;
-using namespace cv;
+
+/* ************************************************************************* */
+/**
+ * @brief This function parses the command line arguments for setting A-KAZE parameters
+ * @param options Structure that contains A-KAZE settings
+ * @param img_path Path for the input image
+ * @param kpts_path Path for the file where the keypoints where be stored
+ */
+int parse_input_options(AKAZEOptions& options, const std::string& img_path,
+                        const std::string& kpts_path, int argc, char *argv[]);
 
 /* ************************************************************************* */
 int main(int argc, char *argv[]) {
@@ -46,22 +55,22 @@ int main(int argc, char *argv[]) {
   }
 
   // Try to read the image and if necessary convert to grayscale.
-  Mat img = imread(img_path,0);
+  cv::Mat img = cv::imread(img_path,0);
   if (img.data == NULL) {
-    cout << "Error: cannot load image from file:" << endl << img_path << endl;
+    cerr << "Error: cannot load image from file:" << endl << img_path << endl;
     return -1;
   }
 
   // Convert the image to float to extract features.
-  Mat img_32;
-  img.convertTo(img_32,CV_32F,1.0/255.0,0);
+  cv::Mat img_32;
+  img.convertTo(img_32, CV_32F, 1.0/255.0,0);
 
   // Don't forget to specify image dimensions in AKAZE's options.
   options.img_width = img.cols;
   options.img_height = img.rows;
 
   // Extract features.
-  vector<KeyPoint> kpts;
+  vector<cv::KeyPoint> kpts;
   t1 = cv::getTickCount();
   AKAZE evolution(options);
   evolution.Create_Nonlinear_Scale_Space(img_32);
@@ -70,7 +79,7 @@ int main(int argc, char *argv[]) {
   tdet = 1000.0*(t2-t1) / getTickFrequency();
 
   // Compute descriptors.
-  Mat desc;
+  cv::Mat desc;
   t1 = cv::getTickCount();
   evolution.Compute_Descriptors(kpts,desc);
   t2 = cv::getTickCount();
@@ -88,22 +97,16 @@ int main(int argc, char *argv[]) {
     save_keypoints(kpts_path,kpts,desc,true);
 
   // Check out the result visually.
-  Mat img_rgb = Mat(Size(img.cols,img.rows),CV_8UC3);
+  cv::Mat img_rgb = cv::Mat(cv::Size(img.cols, img.rows), CV_8UC3);
   cvtColor(img,img_rgb,CV_GRAY2BGR);
   draw_keypoints(img_rgb,kpts);
-  imshow(img_path,img_rgb);
-  waitKey(0);
+  cv::imshow(img_path,img_rgb);
+  cv::waitKey(0);
 }
 
 /* ************************************************************************* */
-/**
- * @brief This function parses the command line arguments for setting A-KAZE parameters
- * @param options Structure that contains A-KAZE settings
- * @param img_path Path for the input image
- * @param kpts_path Path for the file where the keypoints where be stored
- */
-int parse_input_options(AKAZEOptions& options, std::string& img_path,
-                        std::string& kpts_path, int argc, char *argv[]) {
+int parse_input_options(AKAZEOptions& options, const std::string& img_path,
+                        const std::string& kpts_path, int argc, char *argv[]) {
 
   // If there is only one argument return
   if (argc == 1) {
@@ -190,7 +193,7 @@ int parse_input_options(AKAZEOptions& options, std::string& img_path,
           return -1;
         }
         else {
-          options.descriptor = atoi(argv[i]);
+          options.descriptor = DESCRIPTOR_TYPE(atoi(argv[i]));
 
           if (options.descriptor < 0 || options.descriptor > MLDB) {
             options.descriptor = MLDB;

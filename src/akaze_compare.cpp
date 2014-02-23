@@ -20,56 +20,86 @@
  * @author Pablo F. Alcantarilla
  */
 
-#include "akaze_compare.h"
+#include "AKAZE.h"
 
 using namespace std;
-using namespace cv;
+
+/* ************************************************************************* */
+// ORB settings
+const int ORB_MAX_KPTS = 1500;
+const float ORB_SCALE_FACTOR = 1.5;
+const int ORB_PYRAMID_LEVELS = 3;
+const float ORB_EDGE_THRESHOLD = 31.0;
+const int ORB_FIRST_PYRAMID_LEVEL = 0;
+const int ORB_WTA_K = 2;
+const int ORB_PATCH_SIZE = 31;
+
+// BRISK settings
+const float BRISK_HTHRES = 10.0;
+const int BRISK_NOCTAVES = 3;
+
+// Some image matching options
+const bool COMPUTE_INLIERS_RANSAC = false;	// 0->Use ground truth homography, 1->Estimate homography with RANSAC
+const float MIN_H_ERROR = 2.50f;	      // Maximum error in pixels to accept an inlier
+const float DRATIO = 0.80f;		          // NNDR Matching value
+
+/* ************************************************************************* */
+/**
+ * @brief This function parses the command line arguments for setting KAZE parameters
+ * and image matching between two input images
+ * @param options Structure that contains KAZE settings
+ * @param img_path1 Path for the first input image
+ * @param img_path2 Path for the second input image
+ * @param homography_path Path for the file that contains a ground truth homography
+ */
+int parse_input_options(AKAZEOptions& options, std::string& img_path1, std::string& img_path2,
+                        std::string& homography_path, int argc, char *argv[]);
 
 /* ************************************************************************* */
 int main(int argc, char *argv[]) {
 
   // Variables
   AKAZEOptions options;
-  Mat img1, img1_32, img2, img2_32;
+  cv::Mat img1, img1_32, img2, img2_32;
   string img_path1, img_path2, homography_path;
   double t1 = 0.0, t2 = 0.0;
 
   // ORB variables
-  Ptr<OrbFeatureDetector> orb_detector;
-  Ptr<DescriptorExtractor> orb_descriptor;
-  vector<KeyPoint> kpts1_orb, kpts2_orb;
-  vector<Point2f> matches_orb, inliers_orb;
-  vector<vector<DMatch> > dmatches_orb;
-  Mat desc1_orb, desc2_orb;
+  cv::Ptr<cv::OrbFeatureDetector> orb_detector;
+  cv::Ptr<cv::DescriptorExtractor> orb_descriptor;
+  vector<cv::KeyPoint> kpts1_orb, kpts2_orb;
+  vector<cv::Point2f> matches_orb, inliers_orb;
+  vector<vector<cv::DMatch> > dmatches_orb;
+  cv::Mat desc1_orb, desc2_orb;
   int nmatches_orb = 0, ninliers_orb = 0, noutliers_orb = 0;
   int nkpts1_orb = 0, nkpts2_orb = 0;
   float ratio_orb = 0.0;
   double torb = 0.0;
 
   // BRISK variables
-  BRISK dbrisk(BRISK_HTHRES,BRISK_NOCTAVES);
-  vector<KeyPoint> kpts1_brisk, kpts2_brisk;
-  vector<Point2f> matches_brisk, inliers_brisk;
-  vector<vector<DMatch> > dmatches_brisk;
-  Mat desc1_brisk, desc2_brisk;
+  cv::BRISK dbrisk(BRISK_HTHRES,BRISK_NOCTAVES);
+  vector<cv::KeyPoint> kpts1_brisk, kpts2_brisk;
+  vector<cv::Point2f> matches_brisk, inliers_brisk;
+  vector<vector<cv::DMatch> > dmatches_brisk;
+  cv::Mat desc1_brisk, desc2_brisk;
   int nmatches_brisk = 0, ninliers_brisk = 0, noutliers_brisk = 0;
   int nkpts1_brisk = 0, nkpts2_brisk = 0;
   float ratio_brisk = 0.0;
   double tbrisk = 0.0;
 
   // AKAZE variables
-  vector<KeyPoint> kpts1_akaze, kpts2_akaze;
-  vector<Point2f> matches_akaze, inliers_akaze;
-  vector<vector<DMatch> > dmatches_akaze;
-  Mat desc1_akaze, desc2_akaze;
+  vector<cv::KeyPoint> kpts1_akaze, kpts2_akaze;
+  vector<cv::Point2f> matches_akaze, inliers_akaze;
+  vector<vector<cv::DMatch> > dmatches_akaze;
+  cv::Mat desc1_akaze, desc2_akaze;
   int nmatches_akaze = 0, ninliers_akaze = 0, noutliers_akaze = 0;
   int nkpts1_akaze = 0, nkpts2_akaze = 0;
   float ratio_akaze = 0.0;
   double takaze = 0.0;
 
-  Ptr<cv::DescriptorMatcher> matcher_l2 = DescriptorMatcher::create("BruteForce");
-  Ptr<cv::DescriptorMatcher> matcher_l1 = DescriptorMatcher::create("BruteForce-Hamming");
-  Mat HG;
+  cv::Ptr<cv::DescriptorMatcher> matcher_l2 = cv::DescriptorMatcher::create("BruteForce");
+  cv::Ptr<cv::DescriptorMatcher> matcher_l1 = cv::DescriptorMatcher::create("BruteForce-Hamming");
+  cv::Mat HG;
 
   // Parse the input command line options
   if (parse_input_options(options,img_path1,img_path2,homography_path,argc,argv)) {
@@ -77,18 +107,18 @@ int main(int argc, char *argv[]) {
   }
 
   // Read the image, force to be grey scale
-  img1 = imread(img_path1,0);
+  img1 = cv::imread(img_path1,0);
 
   if (img1.data == NULL) {
-    cout << "Error loading image: " << img_path1 << endl;
+    cerr << "Error loading image: " << img_path1 << endl;
     return -1;
   }
 
   // Read the image, force to be grey scale
-  img2 = imread(img_path2,0);
+  img2 = cv::imread(img_path2,0);
 
   if (img2.data == NULL) {
-    cout << "Error loading image: " << img_path2 << endl;
+    cerr << "Error loading image: " << img_path2 << endl;
     return -1;
   }
 
@@ -97,17 +127,17 @@ int main(int argc, char *argv[]) {
   img2.convertTo(img2_32,CV_32F,1.0/255.0,0);
 
   // Color images for results visualization
-  Mat img1_rgb_orb = Mat(Size(img1.cols,img1.rows),CV_8UC3);
-  Mat img2_rgb_orb = Mat(Size(img2.cols,img1.rows),CV_8UC3);
-  Mat img_com_orb = Mat(Size(img1.cols*2,img1.rows),CV_8UC3);
+  cv::Mat img1_rgb_orb = cv::Mat(cv::Size(img1.cols, img1.rows), CV_8UC3);
+  cv::Mat img2_rgb_orb = cv::Mat(cv::Size(img2.cols, img1.rows), CV_8UC3);
+  cv::Mat img_com_orb = cv::Mat(cv::Size(img1.cols*2, img1.rows), CV_8UC3);
 
-  Mat img1_rgb_brisk = Mat(Size(img1.cols,img1.rows),CV_8UC3);
-  Mat img2_rgb_brisk = Mat(Size(img2.cols,img1.rows),CV_8UC3);
-  Mat img_com_brisk = Mat(Size(img1.cols*2,img1.rows),CV_8UC3);
+  cv::Mat img1_rgb_brisk = cv::Mat(cv::Size(img1.cols, img1.rows), CV_8UC3);
+  cv::Mat img2_rgb_brisk = cv::Mat(cv::Size(img2.cols, img1.rows), CV_8UC3);
+  cv::Mat img_com_brisk = cv::Mat(cv::Size(img1.cols*2, img1.rows), CV_8UC3);
 
-  Mat img1_rgb_akaze = Mat(Size(img1.cols,img1.rows),CV_8UC3);
-  Mat img2_rgb_akaze = Mat(Size(img2.cols,img1.rows),CV_8UC3);
-  Mat img_com_akaze = Mat(Size(img1.cols*2,img1.rows),CV_8UC3);
+  cv::Mat img1_rgb_akaze = cv::Mat(cv::Size(img1.cols, img1.rows), CV_8UC3);
+  cv::Mat img2_rgb_akaze = cv::Mat(cv::Size(img2.cols, img1.rows), CV_8UC3);
+  cv::Mat img_com_akaze = cv::Mat(cv::Size(img1.cols*2, img1.rows), CV_8UC3);
 
   // Read the homography file
   read_homography(homography_path,HG);
@@ -174,18 +204,18 @@ int main(int argc, char *argv[]) {
   //*****************
   t1 = cv::getTickCount();
 
-  dbrisk(img1,noArray(),kpts1_brisk,desc1_brisk,false);
-  dbrisk(img2,noArray(),kpts2_brisk,desc2_brisk,false);
+  dbrisk(img1, cv::noArray(), kpts1_brisk, desc1_brisk, false);
+  dbrisk(img2, cv::noArray(), kpts2_brisk, desc2_brisk, false);
 
-  matcher_l1->knnMatch(desc1_brisk,desc2_brisk,dmatches_brisk,2);
+  matcher_l1->knnMatch(desc1_brisk, desc2_brisk, dmatches_brisk, 2);
 
-  matches2points_nndr(kpts1_brisk,kpts2_brisk,dmatches_brisk,matches_brisk,DRATIO);
+  matches2points_nndr(kpts1_brisk, kpts2_brisk, dmatches_brisk, matches_brisk, DRATIO);
 
   if (COMPUTE_INLIERS_RANSAC == false) {
-    compute_inliers_homography(matches_brisk,inliers_brisk,HG,MIN_H_ERROR);
+    compute_inliers_homography(matches_brisk, inliers_brisk, HG, MIN_H_ERROR);
   }
   else {
-    compute_inliers_ransac(matches_brisk,inliers_brisk,MIN_H_ERROR,false);
+    compute_inliers_ransac(matches_brisk, inliers_brisk, MIN_H_ERROR, false);
   }
 
   nkpts1_brisk = kpts1_brisk.size();
@@ -285,21 +315,13 @@ int main(int argc, char *argv[]) {
   cout << endl;
 
   // Show the images with the inliers
-  imshow("ORB",img_com_orb);
-  imshow("BRISK",img_com_brisk);
-  imshow("A-KAZE",img_com_akaze);
-  waitKey(0);
+  cv::imshow("ORB",img_com_orb);
+  cv::imshow("BRISK",img_com_brisk);
+  cv::imshow("A-KAZE",img_com_akaze);
+  cv::waitKey(0);
 }
 
 /* ************************************************************************* */
-/**
- * @brief This function parses the command line arguments for setting KAZE parameters
- * and image matching between two input images
- * @param options Structure that contains KAZE settings
- * @param img_path1 Path for the first input image
- * @param img_path2 Path for the second input image
- * @param homography_path Path for the file that contains a ground truth homography
- */
 int parse_input_options(AKAZEOptions& options, std::string& img_path1, std::string& img_path2,
                         std::string& homography_path, int argc, char *argv[]) {
 
@@ -352,16 +374,6 @@ int parse_input_options(AKAZEOptions& options, std::string& img_path1, std::stri
           options.dthreshold = atof(argv[i]);
         }
       }
-      else if (!strcmp(argv[i],"--dthreshold2")) {
-        i = i+1;
-        if (i >= argc) {
-          cerr << "Error introducing input options!!" << endl;
-          return -1;
-        }
-        else {
-          options.dthreshold2 = atof(argv[i]);
-        }
-      }
       else if (!strcmp(argv[i],"--sderivatives")) {
         i = i+1;
         if (i >= argc) {
@@ -389,7 +401,7 @@ int parse_input_options(AKAZEOptions& options, std::string& img_path1, std::stri
           return -1;
         }
         else {
-          options.diffusivity = atoi(argv[i]);
+          options.diffusivity = DIFFUSIVITY_TYPE(atoi(argv[i]));
         }
       }
       else if (!strcmp(argv[i],"--descriptor")) {
@@ -399,7 +411,7 @@ int parse_input_options(AKAZEOptions& options, std::string& img_path1, std::stri
           return -1;
         }
         else {
-          options.descriptor = atoi(argv[i]);
+          options.descriptor = DESCRIPTOR_TYPE(atoi(argv[i]));
 
           if (options.descriptor < 0 || options.descriptor > MLDB) {
             options.descriptor = MLDB;
