@@ -31,8 +31,8 @@ using namespace std;
  * @param img_path Path for the input image
  * @param kpts_path Path for the file where the keypoints where be stored
  */
-int parse_input_options(AKAZEOptions& options, const std::string& img_path,
-                        const std::string& kpts_path, int argc, char *argv[]);
+int parse_input_options(AKAZEOptions& options, std::string& img_path,
+                        std::string& kpts_path, int argc, char *argv[]);
 
 /* ************************************************************************* */
 int main(int argc, char *argv[]) {
@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
   evolution.Create_Nonlinear_Scale_Space(img_32);
   evolution.Feature_Detection(kpts);
   t2 = cv::getTickCount();
-  tdet = 1000.0*(t2-t1) / getTickFrequency();
+  tdet = 1000.0*(t2-t1) / cv::getTickFrequency();
 
   // Compute descriptors.
   cv::Mat desc;
@@ -105,8 +105,8 @@ int main(int argc, char *argv[]) {
 }
 
 /* ************************************************************************* */
-int parse_input_options(AKAZEOptions& options, const std::string& img_path,
-                        const std::string& kpts_path, int argc, char *argv[]) {
+int parse_input_options(AKAZEOptions& options, std::string& img_path,
+                        std::string& kpts_path, int argc, char *argv[]) {
 
   // If there is only one argument return
   if (argc == 1) {
@@ -172,9 +172,8 @@ int parse_input_options(AKAZEOptions& options, const std::string& img_path,
           cerr << "Error introducing input options!!" << endl;
           return -1;
         }
-        else {
+        else
           options.nsublevels = atoi(argv[i]);
-        }
       }
       else if (!strcmp(argv[i],"--diffusivity")) {
         i = i+1;
@@ -182,9 +181,8 @@ int parse_input_options(AKAZEOptions& options, const std::string& img_path,
           cerr << "Error introducing input options!!" << endl;
           return -1;
         }
-        else {
-          options.diffusivity = atoi(argv[i]);
-        }
+        else
+          options.diffusivity = DIFFUSIVITY_TYPE(atoi(argv[i]));
       }
       else if (!strcmp(argv[i],"--descriptor")) {
         i = i+1;
@@ -248,9 +246,8 @@ int parse_input_options(AKAZEOptions& options, const std::string& img_path,
           cerr << "Error introducing input options!!" << endl;
           return -1;
         }
-        else {
+        else
           kpts_path = argv[i];
-        }
       }
     }
   }

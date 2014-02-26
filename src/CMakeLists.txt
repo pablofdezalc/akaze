@@ -36,7 +36,7 @@ include_directories("lib/")
 
 # AKAZE libraries
 set(AKAZE_SRCS
-    lib/config.h
+    lib/AKAZEConfig.h
     lib/AKAZE.h                  lib/AKAZE.cpp
     lib/fed.h                    lib/fed.cpp
     lib/nldiffusion_functions.h  lib/nldiffusion_functions.cpp
@@ -46,9 +46,8 @@ add_library(AKAZE ${AKAZE_SRCS})
 target_link_libraries(AKAZE ${OpenCV_LIBS})
 
 # Feature detector program
-#add_executable(akaze_features
-#               akaze_features.h akaze_features.cpp)
-#target_link_libraries(akaze_features AKAZE)
+add_executable(akaze_features akaze_features.cpp)
+target_link_libraries(akaze_features AKAZE)
 
 # Image matching program
 add_executable(akaze_match akaze_match.cpp)
