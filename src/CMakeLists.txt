@@ -65,7 +65,7 @@ install(FILES
     lib/fed.h
     lib/utils.h
     lib/nldiffusion_functions.h
-    lib/config.h
+    lib/AKAZEConfig.h
     DESTINATION
     ${AKAZE_INCLUDE_PREFIX}
 )
