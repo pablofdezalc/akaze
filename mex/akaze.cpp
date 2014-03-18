@@ -263,7 +263,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
 	}
 	// Summarize the computation times.
 	if (options.verbosity) {
-
 		evolution.Show_Computation_Times();
 		evolution.Save_Scale_Space();
 		mexPrintf("Number of points: %d\n", kpts.size());
@@ -273,10 +272,4 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
 		if (nlhs == 2)
 			mexPrintf("Time Descriptor: %.2f ms.\n", tdesc);
 	}
-
-	// Mat img_rgb = Mat(Size(img.cols,img.rows),CV_8UC3);
-	// cvtColor(img,img_rgb,CV_GRAY2BGR);
-	// draw_keypoints(img_rgb,kpts);
-	// imshow("",img_rgb);
-	// waitKey(0);
 }
