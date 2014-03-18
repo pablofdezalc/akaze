@@ -79,11 +79,14 @@ A mex interface for computing AKAZE features is supplied, in the file `mex/akaze
 
 To be able to use it, first compile the library as explained above. Then, you will need to compile the mex from Matlab.
 
-The following is an example for compiling the mex on Windows 64 bit, Visual Studio 10 and OpenCV 2.4.8. from the `src` folder, type in MATLAB:
+The following is an example for compiling the mex on Windows 64 bit, Visual Studio 10 and OpenCV 2.4.8. from the `mex` folder, type in MATLAB:
 
 `mex akaze.cpp -I'..\src\lib\' -L'..\build\lib\Release\' -I'<path_to_opencv>\build\include' -L'<path_to_opencv>\build\x64\vc10\lib' -lopencv_calib3d248 -lopencv_contrib248 -lopencv_core248 -lopencv_highgui248 -lopencv_imgproc248 -lAKAZE`
 
+The following is an example for compiling the mex on Linux, Ubuntu 12.10, 64 bit, gcc 4.6.4 and OpenCV 2.4.8. from the `mex` folder, type in MATLAB:
+
 For other platforms / compilers / OpenCV versions, change the above line accordingly.
+`mex akaze.cpp -I'../src/lib/' -L'../build/lib/' -lAKAZE -L'/usr/local/lib/' -lopencv_imgproc -lopencv_core -lopencv_calib3d -lopencv_highgui -lgomp`
 
 On Windows, you'll need to make sure that the corresponding OpenCV bin folder is added to your system path before staring MATLAB. e.g.:
 
