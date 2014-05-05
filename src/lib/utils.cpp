@@ -241,17 +241,20 @@ void compute_inliers_ransac(const std::vector<cv::Point2f>& matches,
     points2.push_back(matches[i+1]);
   }
 
-  if (use_fund == true){
-    H = findFundamentalMat(points1,points2,cv::FM_RANSAC,error,0.99,status);
-  }
-  else {
-    H = findHomography(points1,points2,cv::RANSAC,error,status);
-  }
+  if (npoints > 8) {
 
-  for (int i = 0; i < npoints; i++) {
-    if (status.at<unsigned char>(i) == 1) {
-      inliers.push_back(points1[i]);
-      inliers.push_back(points2[i]);
+    if (use_fund == true){
+      H = findFundamentalMat(points1,points2,cv::FM_RANSAC,error,0.99,status);
+    }
+    else {
+      H = findHomography(points1,points2,cv::RANSAC,error,status);
+    }
+
+    for (int i = 0; i < npoints; i++) {
+      if (status.at<unsigned char>(i) == 1) {
+        inliers.push_back(points1[i]);
+        inliers.push_back(points2[i]);
+      }
     }
   }
 }
