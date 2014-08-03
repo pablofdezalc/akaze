@@ -118,7 +118,7 @@ int AKAZE::Create_Nonlinear_Scale_Space(const cv::Mat& img) {
 
   // First compute the kcontrast factor
   options_.kcontrast = compute_k_percentile(img, options_.kcontrast_percentile,
-                                    1.0, options_.kcontrast_nbins, 0, 0);
+                                            1.0, options_.kcontrast_nbins, 0, 0);
 
   t2 = cv::getTickCount();
   timing_.kcontrast = 1000.0*(t2-t1) / cv::getTickFrequency();
@@ -128,13 +128,13 @@ int AKAZE::Create_Nonlinear_Scale_Space(const cv::Mat& img) {
 
     if (evolution_[i].octave > evolution_[i-1].octave) {
       halfsample_image(evolution_[i-1].Lt, evolution_[i].Lt);
+      gaussian_2D_convolution(evolution_[i].Lt, evolution_[i].Lsmooth, 0, 0, 1.0);
       options_.kcontrast = options_.kcontrast*0.75;
     }
     else {
       evolution_[i-1].Lt.copyTo(evolution_[i].Lt);
+      evolution_[i-1].Lsmooth.copyTo(evolution_[i].Lsmooth);
     }
-
-    gaussian_2D_convolution(evolution_[i].Lt, evolution_[i].Lsmooth, 0, 0, 1.0);
 
     // Compute the Gaussian derivatives Lx and Ly
     image_derivatives_scharr(evolution_[i].Lsmooth, evolution_[i].Lx, 1, 0);
@@ -161,6 +161,10 @@ int AKAZE::Create_Nonlinear_Scale_Space(const cv::Mat& img) {
     // Perform FED n inner steps
     for (int j = 0; j < nsteps_[i-1]; j++) {
       nld_step_scalar(evolution_[i].Lt, evolution_[i].Lflow, evolution_[i].Lstep, tsteps_[i-1][j]);
+    }
+
+    if (i < evolution_.size() && evolution_[i+1].octave > evolution_[i].octave) {
+        gaussian_2D_convolution(evolution_[i].Lt, evolution_[i].Lsmooth, 0, 0, 1.0);
     }
   }
 

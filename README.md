@@ -1,12 +1,17 @@
 ## README - A-KAZE Features
 
-Version: 1.2.0
-Date: 18-03-2014
+Version: 1.3.0
+Date: 03-08-2014
 
 You can get the latest version of the code from github:
 `https://github.com/pablofdezalc/akaze`
 
 ## CHANGELOG
+Version: 1.3.0
+Changes:
+- More efficient memory usage
+- Now the smoothing is performed after the FED process
+
 Version: 1.2.0
 Changes:
 - Header file config.h replaced by AKAZEConfig.h
