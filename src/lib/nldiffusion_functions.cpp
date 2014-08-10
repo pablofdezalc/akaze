@@ -203,12 +203,10 @@ float compute_k_percentile(const cv::Mat& img, float perc, float gscale,
                            size_t nbins, size_t ksize_x, size_t ksize_y) {
 
   size_t nbin = 0, nelements = 0, nthreshold = 0, k = 0;
-  float kperc = 0.0, modg = 0.0, lx = 0.0, ly = 0.0;
-  float npoints = 0.0;
-  float hmax = 0.0;
+  float kperc = 0.0, modg = 0.0, npoints = 0.0, hmax = 0.0;
 
   // Create the array for the histogram
-  float *hist = new float[nbins];
+  float* hist = new float[nbins];
 
   // Create the matrices
   cv::Mat gaussian = cv::Mat::zeros(img.rows, img.cols, CV_32F);
@@ -227,11 +225,14 @@ float compute_k_percentile(const cv::Mat& img, float perc, float gscale,
   image_derivatives_scharr(gaussian, Ly, 0, 1);
 
   // Skip the borders for computing the histogram
-  for (int i = 1; i < gaussian.rows-1; i++) {
-    for (int j = 1; j < gaussian.cols-1; j++) {
-      lx = *(Lx.ptr<float>(i)+j);
-      ly = *(Ly.ptr<float>(i)+j);
-      modg = sqrt(lx*lx + ly*ly);
+  for (int y = 1; y < gaussian.rows-1; y++) {
+
+    const float* Lx_row = Lx.ptr<float>(y);
+    const float* Ly_row = Ly.ptr<float>(y);
+
+    for (int x = 1; x < gaussian.cols-1; x++) {
+
+      modg = sqrt(Lx_row[x]*Lx_row[x] + Ly_row[x]*Ly_row[x]);
 
       // Get the maximum
       if (modg > hmax) {
@@ -241,11 +242,14 @@ float compute_k_percentile(const cv::Mat& img, float perc, float gscale,
   }
 
   // Skip the borders for computing the histogram
-  for (int i = 1; i < gaussian.rows-1; i++) {
-    for (int j = 1; j < gaussian.cols-1; j++) {
-      lx = *(Lx.ptr<float>(i)+j);
-      ly = *(Ly.ptr<float>(i)+j);
-      modg = sqrt(lx*lx + ly*ly);
+  for (int y = 1; y < gaussian.rows-1; y++) {
+
+    const float* Lx_row = Lx.ptr<float>(y);
+    const float* Ly_row = Ly.ptr<float>(y);
+
+    for (int x = 1; x < gaussian.cols-1; x++) {
+
+      modg = sqrt(Lx_row[x]*Lx_row[x] + Ly_row[x]*Ly_row[x]);
 
       // Find the correspondent bin
       if (modg != 0.0) {
