@@ -84,7 +84,21 @@ void image_derivatives_scharr(const cv::Mat& src, cv::Mat& dst,
  * @param k Contrast factor parameter
  */
 void pm_g1(const cv::Mat& Lx, const cv::Mat& Ly, cv::Mat& dst, const float& k) {
-  exp(-(Lx.mul(Lx)+Ly.mul(Ly))/(k*k),dst);
+
+  Size sz = Lx.size();
+  float inv_k = 1.0 / (k*k);
+  for (int y = 0; y < sz.height; y++) {
+
+    const float* Lx_row = Lx.ptr<float>(y);
+    const float* Ly_row = Ly.ptr<float>(y);
+    float* dst_row = dst.ptr<float>(y);
+
+    for (int x = 0; x < sz.width; x++) {
+      dst_row[x] = (-inv_k*(Lx_row[x]*Lx_row[x] + Ly_row[x]*Ly_row[x]));
+    }
+  }
+
+  exp(dst, dst);
 }
 
 /* ************************************************************************* */
@@ -97,7 +111,19 @@ void pm_g1(const cv::Mat& Lx, const cv::Mat& Ly, cv::Mat& dst, const float& k) {
  * @param k Contrast factor parameter
  */
 void pm_g2(const cv::Mat& Lx, const cv::Mat& Ly, cv::Mat& dst, const float& k) {
-  dst = 1.0/(1.0+(Lx.mul(Lx)+Ly.mul(Ly))/(k*k));
+
+  Size sz = Lx.size();
+  float inv_k = 1.0 / (k*k);
+  for (int y = 0; y < sz.height; y++) {
+
+    const float* Lx_row = Lx.ptr<float>(y);
+    const float* Ly_row = Ly.ptr<float>(y);
+    float* dst_row = dst.ptr<float>(y);
+
+    for (int x = 0; x < sz.width; x++) {
+      dst_row[x] = 1.0 / (1.0+inv_k*(Lx_row[x]*Lx_row[x] + Ly_row[x]*Ly_row[x]));
+    }
+  }
 }
 
 /* ************************************************************************* */
@@ -112,9 +138,22 @@ void pm_g2(const cv::Mat& Lx, const cv::Mat& Ly, cv::Mat& dst, const float& k) {
  * Proceedings of Algorithmy 2000
  */
 void weickert_diffusivity(const cv::Mat& Lx, const cv::Mat& Ly, cv::Mat& dst, const float& k) {
-  Mat modg;
-  pow((Lx.mul(Lx) + Ly.mul(Ly))/(k*k),4,modg);
-  cv::exp(-3.315/modg, dst);
+
+  Size sz = Lx.size();
+  float inv_k = 1.0 / (k*k);
+  for (int y = 0; y < sz.height; y++) {
+
+    const float* Lx_row = Lx.ptr<float>(y);
+    const float* Ly_row = Ly.ptr<float>(y);
+    float* dst_row = dst.ptr<float>(y);
+
+    for (int x = 0; x < sz.width; x++) {
+      float dL = inv_k*(Lx_row[x]*Lx_row[x] + Ly_row[x]*Ly_row[x]);
+      dst_row[x] = -3.315/(dL*dL*dL*dL);
+    }
+  }
+
+  exp(dst, dst);
   dst = 1.0 - dst;
 }
 
@@ -131,9 +170,20 @@ void weickert_diffusivity(const cv::Mat& Lx, const cv::Mat& Ly, cv::Mat& dst, co
  * Proceedings of Algorithmy 2000
  */
 void charbonnier_diffusivity(const cv::Mat& Lx, const cv::Mat& Ly, cv::Mat& dst, const float& k) {
-  Mat den;
-  cv::sqrt(1.0+(Lx.mul(Lx)+Ly.mul(Ly))/(k*k),den);
-  dst = 1.0/ den;
+
+  Size sz = Lx.size();
+  float inv_k = 1.0 / (k*k);
+  for (int y = 0; y < sz.height; y++) {
+
+    const float* Lx_row = Lx.ptr<float>(y);
+    const float* Ly_row = Ly.ptr<float>(y);
+    float* dst_row = dst.ptr<float>(y);
+
+    for (int x = 0; x < sz.width; x++) {
+      float den = sqrt(1.0+inv_k*(Lx_row[x]*Lx_row[x] + Ly_row[x]*Ly_row[x]));
+      dst_row[x] = 1.0 / den;
+    }
+  }
 }
 
 /* ************************************************************************* */
@@ -303,27 +353,6 @@ void nld_step_scalar(cv::Mat& Ld, const cv::Mat& c, cv::Mat& Lstep, const float&
   }
 
   Ld = Ld + Lstep;
-}
-
-/* ************************************************************************* */
-/**
- * @brief This function downsamples the input image with the kernel [1/4,1/2,1/4]
- * @param img Input image to be downsampled
- * @param dst Output image with half of the resolution of the input image
- */
-void downsample_image(const cv::Mat& src, cv::Mat& dst) {
-
-  int i1 = 0, j1 = 0, i2 = 0, j2 = 0;
-
-  for (i1 = 1; i1 < src.rows; i1+=2) {
-    j2 = 0;
-    for (j1 = 1; j1 < src.cols; j1+=2) {
-      *(dst.ptr<float>(i2)+j2) = 0.5*(*(src.ptr<float>(i1)+j1))+0.25*(*(src.ptr<float>(i1)+j1-1) + *(src.ptr<float>(i1)+j1+1));
-      j2++;
-    }
-
-    i2++;
-  }
 }
 
 /* ************************************************************************* */
