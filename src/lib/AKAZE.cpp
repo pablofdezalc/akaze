@@ -401,9 +401,9 @@ void AKAZE::Do_Subpixel_Refinement(std::vector<cv::KeyPoint>& kpts) {
   float Dx = 0.0, Dy = 0.0, ratio = 0.0;
   float Dxx = 0.0, Dyy = 0.0, Dxy = 0.0;
   int x = 0, y = 0;
-  cv::Mat A = cv::Mat::zeros(2, 2, CV_32F);
-  cv::Mat b = cv::Mat::zeros(2, 1, CV_32F);
-  cv::Mat dst = cv::Mat::zeros(2, 1, CV_32F);
+  cv::Matx22f A(0, 0, 0, 0);
+  cv::Vec2f b(0, 0);
+  cv::Vec2f dst(0, 0);
 
   t1 = cv::getTickCount();
 
@@ -433,19 +433,20 @@ void AKAZE::Do_Subpixel_Refinement(std::vector<cv::KeyPoint>& kpts) {
                  +(*(evolution_[kpts[i].class_id].Ldet.ptr<float>(y+1)+x-1)));
 
     // Solve the linear system
-    *(A.ptr<float>(0)) = Dxx;
-    *(A.ptr<float>(1)+1) = Dyy;
-    *(A.ptr<float>(0)+1) = *(A.ptr<float>(1)) = Dxy;
-    *(b.ptr<float>(0)) = -Dx;
-    *(b.ptr<float>(1)) = -Dy;
+    A(0, 0) = Dxx;
+    A(1, 1) = Dyy;
+    A(0, 1) = A(1, 0) = Dxy;
+    b(0) = -Dx;
+    b(1) = -Dy;
 
     cv::solve(A, b, dst, DECOMP_LU);
 
-    if (fabs(*(dst.ptr<float>(0))) <= 1.0 && fabs(*(dst.ptr<float>(1))) <= 1.0) {
-      kpts[i].pt.x = x + (*(dst.ptr<float>(0)));
-      kpts[i].pt.y = y + (*(dst.ptr<float>(1)));
-      kpts[i].pt.x *= powf(2.f,evolution_[kpts[i].class_id].octave);
-      kpts[i].pt.y *= powf(2.f,evolution_[kpts[i].class_id].octave);
+    if (fabs(dst(0)) <= 1.0 && fabs(dst(1)) <= 1.0) {
+      kpts[i].pt.x = x + dst(0);
+      kpts[i].pt.y = y + dst(1);
+      int power = powf(2, evolution_[kpts[i].class_id].octave);
+      kpts[i].pt.x *= power;
+      kpts[i].pt.y *= power;
       kpts[i].angle = 0.0;
 
       // In OpenCV the size of a keypoint its the diameter
