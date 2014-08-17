@@ -316,47 +316,84 @@ void nld_step_scalar(cv::Mat& Ld, const cv::Mat& c, cv::Mat& Lstep, const float&
 #ifdef _OPENMP
 #pragma omp parallel for schedule(dynamic)
 #endif
-  for (int i = 1; i < Lstep.rows-1; i++) {
-    for (int j = 1; j < Lstep.cols-1; j++) {
-      float xpos = ((*(c.ptr<float>(i)+j))+(*(c.ptr<float>(i)+j+1)))*((*(Ld.ptr<float>(i)+j+1))-(*(Ld.ptr<float>(i)+j)));
-      float xneg = ((*(c.ptr<float>(i)+j-1))+(*(c.ptr<float>(i)+j)))*((*(Ld.ptr<float>(i)+j))-(*(Ld.ptr<float>(i)+j-1)));
-      float ypos = ((*(c.ptr<float>(i)+j))+(*(c.ptr<float>(i+1)+j)))*((*(Ld.ptr<float>(i+1)+j))-(*(Ld.ptr<float>(i)+j)));
-      float yneg = ((*(c.ptr<float>(i-1)+j))+(*(c.ptr<float>(i)+j)))*((*(Ld.ptr<float>(i)+j))-(*(Ld.ptr<float>(i-1)+j)));
-      *(Lstep.ptr<float>(i)+j) = 0.5*stepsize*(xpos-xneg + ypos-yneg);
+  for (int y = 1; y < Lstep.rows-1; y++) {
+
+    const float* c_row = c.ptr<float>(y);
+    const float* c_row_p = c.ptr<float>(y+1);
+    const float* c_row_m = c.ptr<float>(y-1);
+
+    float* Ld_row = Ld.ptr<float>(y);
+    float* Ld_row_p = Ld.ptr<float>(y+1);
+    float* Ld_row_m = Ld.ptr<float>(y-1);
+
+    float* Lstep_row = Lstep.ptr<float>(y);
+
+    for (int x = 1; x < Lstep.cols-1; x++) {
+      float xpos =  (c_row[x]+c_row[x+1])*(Ld_row[x+1]-Ld_row[x]);
+      float xneg =  (c_row[x-1]+c_row[x])*(Ld_row[x]-Ld_row[x-1]);
+      float ypos =  (c_row[x]+c_row_p[x])*(Ld_row_p[x]-Ld_row[x]);
+      float yneg =  (c_row_m[x]+c_row[x])*(Ld_row[x]-Ld_row_m[x]);
+      Lstep_row[x] = 0.5*stepsize*(xpos-xneg + ypos-yneg);
     }
   }
 
-  for (int j = 1; j < Lstep.cols-1; j++) {
-    float xpos = ((*(c.ptr<float>(0)+j))+(*(c.ptr<float>(0)+j+1)))*((*(Ld.ptr<float>(0)+j+1))-(*(Ld.ptr<float>(0)+j)));
-    float xneg = ((*(c.ptr<float>(0)+j-1))+(*(c.ptr<float>(0)+j)))*((*(Ld.ptr<float>(0)+j))-(*(Ld.ptr<float>(0)+j-1)));
-    float ypos = ((*(c.ptr<float>(0)+j))+(*(c.ptr<float>(1)+j)))*((*(Ld.ptr<float>(1)+j))-(*(Ld.ptr<float>(0)+j)));
-    *(Lstep.ptr<float>(0)+j) = 0.5*stepsize*(xpos-xneg + ypos);
+  const float* c_row = c.ptr<float>(0);
+  const float* c_row_p = c.ptr<float>(1);
+  float* Ld_row = Ld.ptr<float>(0);
+  float* Ld_row_p = Ld.ptr<float>(1);
+  float* Lstep_row = Lstep.ptr<float>(0);
+
+  for (int x = 1; x < Lstep.cols-1; x++) {
+    float xpos = (c_row[x]+c_row[x+1])*(Ld_row[x+1]-Ld_row[x]);
+    float xneg = (c_row[x-1]*c_row[x])*(Ld_row[x]-Ld_row[x-1]);
+    float ypos = (c_row[x]+c_row_p[x])*(Ld_row_p[x]-Ld_row[x]);
+    Lstep_row[x] = 0.5*stepsize*(xpos-xneg + ypos);
   }
 
-  for (int j = 1; j < Lstep.cols-1; j++) {
-    float xpos = ((*(c.ptr<float>(Lstep.rows-1)+j))+(*(c.ptr<float>(Lstep.rows-1)+j+1)))*((*(Ld.ptr<float>(Lstep.rows-1)+j+1))-(*(Ld.ptr<float>(Lstep.rows-1)+j)));
-    float xneg = ((*(c.ptr<float>(Lstep.rows-1)+j-1))+(*(c.ptr<float>(Lstep.rows-1)+j)))*((*(Ld.ptr<float>(Lstep.rows-1)+j))-(*(Ld.ptr<float>(Lstep.rows-1)+j-1)));
-    float ypos = ((*(c.ptr<float>(Lstep.rows-1)+j))+(*(c.ptr<float>(Lstep.rows-1)+j)))*((*(Ld.ptr<float>(Lstep.rows-1)+j))-(*(Ld.ptr<float>(Lstep.rows-1)+j)));
-    float yneg = ((*(c.ptr<float>(Lstep.rows-2)+j))+(*(c.ptr<float>(Lstep.rows-1)+j)))*((*(Ld.ptr<float>(Lstep.rows-1)+j))-(*(Ld.ptr<float>(Lstep.rows-2)+j)));
-    *(Lstep.ptr<float>(Lstep.rows-1)+j) = 0.5*stepsize*(xpos-xneg + ypos-yneg);
+  c_row = c.ptr<float>(Lstep.rows-1);
+  c_row_p = c.ptr<float>(Lstep.rows-2);
+  Ld_row = Ld.ptr<float>(Lstep.rows-1);
+  Ld_row_p = Ld.ptr<float>(Lstep.rows-2);
+  Lstep_row = Lstep.ptr<float>(Lstep.rows-1);
+
+  for (int x = 1; x < Lstep.cols-1; x++) {
+    float xpos = (c_row[x]+c_row[x+1])*(Ld_row[x+1]-Ld_row[x]);
+    float xneg = (c_row[x-1]*c_row[x])*(Ld_row[x]-Ld_row[x-1]);
+    float ypos = (c_row[x]+c_row_p[x])*(Ld_row_p[x]-Ld_row[x]);
+    Lstep_row[x] = 0.5*stepsize*(xpos-xneg + ypos);
   }
+
+
 
   for (int i = 1; i < Lstep.rows-1; i++) {
-    float xpos = ((*(c.ptr<float>(i)))+(*(c.ptr<float>(i)+1)))*((*(Ld.ptr<float>(i)+1))-(*(Ld.ptr<float>(i))));
-    float xneg = ((*(c.ptr<float>(i)))+(*(c.ptr<float>(i))))*((*(Ld.ptr<float>(i)))-(*(Ld.ptr<float>(i))));
-    float ypos = ((*(c.ptr<float>(i)))+(*(c.ptr<float>(i+1))))*((*(Ld.ptr<float>(i+1)))-(*(Ld.ptr<float>(i))));
-    float yneg = ((*(c.ptr<float>(i-1)))+(*(c.ptr<float>(i))))*((*(Ld.ptr<float>(i)))-(*(Ld.ptr<float>(i-1))));
-    *(Lstep.ptr<float>(i)) = 0.5*stepsize*(xpos-xneg + ypos-yneg);
+
+    const float* c_row = c.ptr<float>(i);
+    const float* c_row_m = c.ptr<float>(i-1);
+    const float* c_row_p = c.ptr<float>(i+1);
+    float* Ld_row = Ld.ptr<float>(i);
+    float* Ld_row_p = Ld.ptr<float>(i-1);
+    float* Ld_row_m = Ld.ptr<float>(i+1);
+    Lstep_row = Lstep.ptr<float>(i);
+
+    float xpos = (c_row[0]+c_row[1])*(Ld_row[1]-Ld_row[0]);
+    float ypos = (c_row[0]+c_row_p[0])*(Ld_row_p[0]-Ld_row[0]);
+    float yneg = (c_row_m[0]+c_row[0])*(Ld_row[0]-Ld_row_m[0]);
+    Lstep_row[0] = 0.5*stepsize*(xpos+ypos-yneg);
+
+    float xneg = (c_row[Lstep.cols-2]+c_row[Lstep.cols-1])*(Ld_row[Lstep.cols-1]-Ld_row[Lstep.cols-2]);
+    ypos = (c_row[Lstep.cols-1]+c_row_p[Lstep.cols-1])*(Ld_row_p[Lstep.cols-1]-Ld_row[Lstep.cols-1]);
+    yneg = (c_row_m[Lstep.cols-1]+c_row[Lstep.cols-1])*(Ld_row[Lstep.cols-1]-Ld_row_m[Lstep.cols-1]);
+    Lstep_row[Lstep.cols-1] = 0.5*stepsize*(-xneg+ypos-yneg);
   }
 
-  for (int i = 1; i < Lstep.rows-1; i++) {
-    float xneg = ((*(c.ptr<float>(i)+Lstep.cols-2))+(*(c.ptr<float>(i)+Lstep.cols-1)))*((*(Ld.ptr<float>(i)+Lstep.cols-1))-(*(Ld.ptr<float>(i)+Lstep.cols-2)));
-    float ypos = ((*(c.ptr<float>(i)+Lstep.cols-1))+(*(c.ptr<float>(i+1)+Lstep.cols-1)))*((*(Ld.ptr<float>(i+1)+Lstep.cols-1))-(*(Ld.ptr<float>(i)+Lstep.cols-1)));
-    float yneg = ((*(c.ptr<float>(i-1)+Lstep.cols-1))+(*(c.ptr<float>(i)+Lstep.cols-1)))*((*(Ld.ptr<float>(i)+Lstep.cols-1))-(*(Ld.ptr<float>(i-1)+Lstep.cols-1)));
-    *(Lstep.ptr<float>(i)+Lstep.cols-1) = 0.5*stepsize*(-xneg + ypos-yneg);
+  // Ld = Ld + Lstep
+  for (int y = 0; y < Lstep.rows; y++) {
+    float* Ld_row = Ld.ptr<float>(y);
+    float* Lstep_row = Lstep.ptr<float>(y);
+    for (int x = 0; x < Lstep.cols; x++) {
+      Ld_row[x] = Ld_row[x] + Lstep_row[x];
+    }
   }
-
-  Ld = Ld + Lstep;
 }
 
 /* ************************************************************************* */
