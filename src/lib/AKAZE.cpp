@@ -242,12 +242,14 @@ void AKAZE::Compute_Determinant_Hessian_Response(void) {
     }
 
     for (int ix = 0; ix < evolution_[i].Ldet.rows; ix++) {
-      for (int jx = 0; jx < evolution_[i].Ldet.cols; jx++) {
-        float lxx = *(evolution_[i].Lxx.ptr<float>(ix)+jx);
-        float lxy = *(evolution_[i].Lxy.ptr<float>(ix)+jx);
-        float lyy = *(evolution_[i].Lyy.ptr<float>(ix)+jx);
-        *(evolution_[i].Ldet.ptr<float>(ix)+jx) = (lxx*lyy-lxy*lxy);
-      }
+
+      float* lxx = evolution_[i].Lxx.ptr<float>(ix);
+      float* lxy = evolution_[i].Lxy.ptr<float>(ix);
+      float* lyy = evolution_[i].Lyy.ptr<float>(ix);
+      float* ldet = evolution_[i].Ldet.ptr<float>(ix);
+
+      for (int jx = 0; jx < evolution_[i].Ldet.cols; jx++)
+        ldet[jx] = lxx[jx]*lyy[jx]-lxy[jx]*lxy[jx];
     }
   }
 }
