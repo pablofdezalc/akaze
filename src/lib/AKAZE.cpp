@@ -62,15 +62,16 @@ void AKAZE::Allocate_Memory_Evolution(void) {
 
     for (int j = 0; j < options_.nsublevels; j++) {
       TEvolution step;
-      step.Lx  = cv::Mat::zeros(level_height, level_width, CV_32F);
-      step.Ly  = cv::Mat::zeros(level_height, level_width, CV_32F);
-      step.Lxx = cv::Mat::zeros(level_height, level_width, CV_32F);
-      step.Lxy = cv::Mat::zeros(level_height, level_width, CV_32F);
-      step.Lyy = cv::Mat::zeros(level_height, level_width, CV_32F);
-      step.Lt  = cv::Mat::zeros(level_height, level_width, CV_32F);
-      step.Ldet = cv::Mat::zeros(level_height, level_width, CV_32F);
-      step.Lflow  = cv::Mat::zeros(level_height, level_width, CV_32F);
-      step.Lstep  = cv::Mat::zeros(level_height, level_width, CV_32F);
+      cv::Size size(level_width, level_height);
+      step.Lx.create(size, CV_32F);
+      step.Ly.create(size, CV_32F);
+      step.Lxx.create(size, CV_32F);
+      step.Lxy.create(size, CV_32F);
+      step.Lyy.create(size, CV_32F);
+      step.Lt.create(size, CV_32F);
+      step.Ldet.create(size, CV_32F);
+      step.Lflow.create(size, CV_32F);
+      step.Lstep.create(size, CV_32F);
       step.esigma = options_.soffset*pow(2.f, (float)(j)/(float)(options_.nsublevels) + i);
       step.sigma_size = fRound(step.esigma);
       step.etime = 0.5*(step.esigma*step.esigma);
@@ -128,13 +129,13 @@ int AKAZE::Create_Nonlinear_Scale_Space(const cv::Mat& img) {
 
     if (evolution_[i].octave > evolution_[i-1].octave) {
       halfsample_image(evolution_[i-1].Lt, evolution_[i].Lt);
-      gaussian_2D_convolution(evolution_[i].Lt, evolution_[i].Lsmooth, 0, 0, 1.0);
       options_.kcontrast = options_.kcontrast*0.75;
     }
     else {
       evolution_[i-1].Lt.copyTo(evolution_[i].Lt);
-      evolution_[i-1].Lsmooth.copyTo(evolution_[i].Lsmooth);
     }
+
+    gaussian_2D_convolution(evolution_[i].Lt, evolution_[i].Lsmooth, 0, 0, 1.0);
 
     // Compute the Gaussian derivatives Lx and Ly
     image_derivatives_scharr(evolution_[i].Lsmooth, evolution_[i].Lx, 1, 0);
@@ -161,10 +162,6 @@ int AKAZE::Create_Nonlinear_Scale_Space(const cv::Mat& img) {
     // Perform FED n inner steps
     for (int j = 0; j < nsteps_[i-1]; j++) {
       nld_step_scalar(evolution_[i].Lt, evolution_[i].Lflow, evolution_[i].Lstep, tsteps_[i-1][j]);
-    }
-
-    if (i < evolution_.size() && evolution_[i+1].octave > evolution_[i].octave) {
-        gaussian_2D_convolution(evolution_[i].Lt, evolution_[i].Lsmooth, 0, 0, 1.0);
     }
   }
 
