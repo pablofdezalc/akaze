@@ -283,22 +283,23 @@ void AKAZE::Find_Scale_Space_Extrema(std::vector<cv::KeyPoint>& kpts) {
 
   for (size_t i = 0; i < evolution_.size(); i++) {
     for (int ix = 1; ix < evolution_[i].Ldet.rows-1; ix++) {
+
+      float* ldet_m = evolution_[i].Ldet.ptr<float>(ix-1);
+      float* ldet = evolution_[i].Ldet.ptr<float>(ix);
+      float* ldet_p = evolution_[i].Ldet.ptr<float>(ix+1);
+
       for (int jx = 1; jx < evolution_[i].Ldet.cols-1; jx++) {
+
         is_extremum = false;
         is_repeated = false;
         is_out = false;
-        value = *(evolution_[i].Ldet.ptr<float>(ix)+jx);
+        value = ldet[jx];
 
         // Filter the points with the detector threshold
         if (value > options_.dthreshold && value >= options_.min_dthreshold &&
-            value > *(evolution_[i].Ldet.ptr<float>(ix)+jx-1) &&
-            value > *(evolution_[i].Ldet.ptr<float>(ix)+jx+1) &&
-            value > *(evolution_[i].Ldet.ptr<float>(ix-1)+jx-1) &&
-            value > *(evolution_[i].Ldet.ptr<float>(ix-1)+jx) &&
-            value > *(evolution_[i].Ldet.ptr<float>(ix-1)+jx+1) &&
-            value > *(evolution_[i].Ldet.ptr<float>(ix+1)+jx-1) &&
-            value > *(evolution_[i].Ldet.ptr<float>(ix+1)+jx) &&
-            value > *(evolution_[i].Ldet.ptr<float>(ix+1)+jx+1)) {
+            value > ldet[jx-1] && value > ldet[jx+1] &&
+            value > ldet_m[jx-1] && value > ldet_m[jx] && value > ldet_m[jx+1] &&
+            value > ldet_p[jx-1] && value > ldet_p[jx] && value > ldet_p[jx+1]) {
 
           is_extremum = true;
           point.response = fabs(value);
@@ -371,8 +372,11 @@ void AKAZE::Find_Scale_Space_Extrema(std::vector<cv::KeyPoint>& kpts) {
 
       // Compare response with the upper scale
       if ((point.class_id+1) == kpts_aux[j].class_id) {
-        dist = sqrt(pow(point.pt.x-kpts_aux[j].pt.x,2)+pow(point.pt.y-kpts_aux[j].pt.y,2));
-        if (dist <= point.size) {
+
+        dist = (point.pt.x-kpts_aux[j].pt.x)*(point.pt.x-kpts_aux[j].pt.x) +
+               (point.pt.y-kpts_aux[j].pt.y)*(point.pt.y-kpts_aux[j].pt.y);
+
+        if (dist <= point.size*point.size) {
           if (point.response < kpts_aux[j].response) {
             is_repeated = true;
             break;
