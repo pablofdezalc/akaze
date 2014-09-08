@@ -1,11 +1,11 @@
 
 # Find external libraries and dependencies
 find_package(OpenCV REQUIRED)
+find_package(Doxygen)
+
 if (NOT APPLE)
   find_package(OpenMP)
 endif ()
-
-find_package(Doxygen)
 
 # ============================================================================ #
 # Compilation flags

@@ -655,7 +655,6 @@ void AKAZE::Compute_Main_Orientation(cv::KeyPoint& kpt) const {
         gweight = gauss25[id[i+6]][id[j+6]];
         resX[idx] = gweight*(*(evolution_[level].Lx.ptr<float>(iy)+ix));
         resY[idx] = gweight*(*(evolution_[level].Ly.ptr<float>(iy)+ix));
-
         Ang[idx] = get_angle(resX[idx],resY[idx]);
         ++idx;
       }
@@ -873,9 +872,8 @@ void AKAZE::Get_SURF_Descriptor_64(const cv::KeyPoint& kpt, float *desc) const {
   // convert to unit vector
   len = sqrt(len);
 
-  for (int i = 0; i < dsize; i++) {
+  for (int i = 0; i < dsize; i++)
     desc[i] /= len;
-  }
 }
 
 /* ************************************************************************* */
@@ -994,9 +992,8 @@ void AKAZE::Get_MSURF_Upright_Descriptor_64(const cv::KeyPoint& kpt, float *desc
   // convert to unit vector
   len = sqrt(len);
 
-  for (int i = 0; i < dsize; i++) {
+  for (int i = 0; i < dsize; i++)
     desc[i] /= len;
-  }
 }
 
 /* ************************************************************************* */
@@ -1119,9 +1116,8 @@ void AKAZE::Get_MSURF_Descriptor_64(const cv::KeyPoint& kpt, float *desc) const 
   // convert to unit vector
   len = sqrt(len);
 
-  for (int i = 0; i < dsize; i++) {
+  for (int i = 0; i < dsize; i++)
     desc[i] /= len;
-  }
 }
 
 /* ************************************************************************* */
