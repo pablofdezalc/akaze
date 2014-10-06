@@ -29,7 +29,6 @@
 #include <fstream>
 
 using namespace std;
-using namespace cv;
 
 /* ************************************************************************* */
 /**
@@ -117,7 +116,7 @@ void copy_and_convert_scale(const cv::Mat &src, cv::Mat dst) {
  * @param img Input image
  * @param kpts Vector of detected keypoints
  */
-void draw_keypoints(cv::Mat &img, const std::vector<cv::KeyPoint> &kpts) {
+void draw_keypoints(cv::Mat& img, const std::vector<cv::KeyPoint>& kpts) {
 
   int x = 0, y = 0;
   float radius = 0.0;
@@ -126,8 +125,8 @@ void draw_keypoints(cv::Mat &img, const std::vector<cv::KeyPoint> &kpts) {
     x = (int)(kpts[i].pt.x+.5);
     y = (int)(kpts[i].pt.y+.5);
     radius = kpts[i].size/2.0;
-    circle(img,Point(x,y),radius*2.50,CV_RGB(0,255,0),1);
-    circle(img,Point(x,y),1.0,CV_RGB(0,0,255),-1);
+    cv::circle(img, cv::Point(x,y), radius*2.50, CV_RGB(0,255,0), 1);
+    cv::circle(img, cv::Point(x,y), 1.0, CV_RGB(0,0,255), -1);
   }
 }
 
@@ -212,7 +211,7 @@ void matches2points_nndr(const std::vector<cv::KeyPoint>& train,
 
   float dist1 = 0.0, dist2 = 0.0;
   for (size_t i = 0; i < matches.size(); i++) {
-    DMatch dmatch = matches[i][0];
+    cv::DMatch dmatch = matches[i][0];
     dist1 = matches[i][0].distance;
     dist2 = matches[i][1].distance;
 
@@ -236,10 +235,10 @@ void compute_inliers_ransac(const std::vector<cv::Point2f>& matches,
                             std::vector<cv::Point2f>& inliers,
                             float error, bool use_fund) {
 
-  vector<Point2f> points1, points2;
-  Mat H = Mat::zeros(3,3,CV_32F);
+  vector<cv::Point2f> points1, points2;
+  cv::Mat H = cv::Mat::zeros(3,3,CV_32F);
   int npoints = matches.size()/2;
-  Mat status = Mat::zeros(npoints,1,CV_8UC1);
+  cv::Mat status = cv::Mat::zeros(npoints,1,CV_8UC1);
 
   for (size_t i = 0; i < matches.size(); i+=2) {
     points1.push_back(matches[i]);
@@ -248,12 +247,10 @@ void compute_inliers_ransac(const std::vector<cv::Point2f>& matches,
 
   if (npoints > 8) {
 
-    if (use_fund == true){
-      H = findFundamentalMat(points1,points2,cv::FM_RANSAC,error,0.99,status);
-    }
-    else {
-      H = findHomography(points1,points2,cv::RANSAC,error,status);
-    }
+    if (use_fund == true)
+      H = cv::findFundamentalMat(points1,points2,cv::FM_RANSAC,error,0.99,status);
+    else
+      H = cv::findHomography(points1,points2,cv::RANSAC,error,status);
 
     for (int i = 0; i < npoints; i++) {
       if (status.at<unsigned char>(i) == 1) {
@@ -338,8 +335,8 @@ void draw_inliers(const cv::Mat& img1, const cv::Mat& img2, cv::Mat& img_com,
   vfactor = (float)(rows1)/(float)(rows2);
 
   // This is in case the input images don't have the same resolution
-  Mat img_aux = Mat(Size(img1.cols,img1.rows),CV_8UC3);
-  resize(img2,img_aux,Size(img1.cols,img1.rows),0,0,cv::INTER_LINEAR);
+  cv::Mat img_aux = cv::Mat(cv::Size(img1.cols, img1.rows), CV_8UC3);
+  cv::resize(img2, img_aux, cv::Size(img1.cols, img1.rows), 0, 0, cv::INTER_LINEAR);
 
   for (int i = 0; i < img_com.rows; i++) {
     for (int j = 0; j < img_com.cols; j++) {
@@ -361,7 +358,7 @@ void draw_inliers(const cv::Mat& img1, const cv::Mat& img2, cv::Mat& img_com,
     y1 = (int)(ptpairs[i].y+.5);
     x2 = (int)(ptpairs[i+1].x*ufactor+img1.cols+.5);
     y2 = (int)(ptpairs[i+1].y*vfactor+.5);
-    line(img_com,Point(x1,y1),Point(x2,y2),CV_RGB(255,0,0),2);
+    cv::line(img_com, cv::Point(x1,y1), cv::Point(x2,y2), CV_RGB(255,0,0),2);
   }
 }
 
@@ -390,8 +387,8 @@ void draw_inliers(const cv::Mat& img1, const cv::Mat& img2, cv::Mat& img_com,
   vfactor = (float)(rows1)/(float)(rows2);
 
   // This is in case the input images don't have the same resolution
-  Mat img_aux = Mat(Size(img1.cols,img1.rows),CV_8UC3);
-  resize(img2,img_aux,Size(img1.cols,img1.rows),0,0,cv::INTER_LINEAR);
+  cv::Mat img_aux = cv::Mat(cv::Size(img1.cols, img1.rows), CV_8UC3);
+  cv::resize(img2, img_aux, cv::Size(img1.cols, img1.rows), 0, 0, cv::INTER_LINEAR);
 
   for (int i = 0; i < img_com.rows; i++) {
     for (int j = 0; j < img_com.cols; j++) {
@@ -414,15 +411,12 @@ void draw_inliers(const cv::Mat& img1, const cv::Mat& img2, cv::Mat& img_com,
     x2 = (int)(ptpairs[i+1].x*ufactor+img1.cols+.5);
     y2 = (int)(ptpairs[i+1].y*vfactor+.5);
 
-    if (color == 0) {
-      cv::line(img_com,Point(x1,y1),Point(x2,y2),CV_RGB(255,255,0),2);
-    }
-    else if (color == 1) {
-      cv::line(img_com,Point(x1,y1),Point(x2,y2),CV_RGB(255,0,0),2);
-    }
-    else if (color == 2) {
-      cv::line(img_com,Point(x1,y1),Point(x2,y2),CV_RGB(0,0,255),2);
-    }
+    if (color == 0)
+      cv::line(img_com, cv::Point(x1,y1), cv::Point(x2,y2), CV_RGB(255,255,0), 2);
+    else if (color == 1)
+      cv::line(img_com, cv::Point(x1,y1), cv::Point(x2,y2), CV_RGB(255,0,0), 2);
+    else if (color == 2)
+      cv::line(img_com, cv::Point(x1,y1), cv::Point(x2,y2), CV_RGB(0,0,255), 2);
   }
 }
 
