@@ -203,7 +203,7 @@ int parse_input_options(AKAZEOptions& options, std::string& img_path1, std::stri
     if (argc >= 4)
      homography_path = argv[3];
 
-    for (int i = 1; i < argc; i++) {
+    for (int i = 3; i < argc; i++) {
       if (!strcmp(argv[i],"--soffset")) {
         i = i+1;
         if (i >= argc) {

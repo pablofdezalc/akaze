@@ -23,7 +23,7 @@
 #include "utils.h"
 
 // OpenCV
-
+#include <opencv2/opencv.hpp>
 
 // System
 #include <fstream>
@@ -498,12 +498,15 @@ void show_input_options_help(int example) {
     cout << "./akaze_features img.jpg [options]" << endl;
   }
   else if (example == 1) {
-    cout << "./akaze_match img1.jpg img2.pgm homography.txt [options]" << endl;
+    cout << "./akaze_match img1.jpg img2.pgm [homography.txt] [options]" << endl;
   }
   else if (example == 2) {
-    cout << "./akaze_compare img1.jpg img2.pgm homography.txt [options]" << endl;
+    cout << "./akaze_compare img1.jpg img2.pgm [homography.txt] [options]" << endl;
   }
   
+  cout << endl;
+  cout_help() << "homography.txt is optional. If the txt file is not provided a planar homography will be estimated using RANSAC" << endl;
+
   cout << endl;
   cout_help() << "Options below are not mandatory. Unless specified, default arguments are used." << endl << endl;  
 
