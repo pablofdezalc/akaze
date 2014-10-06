@@ -22,7 +22,12 @@
 
 #include "utils.h"
 
-// Namespaces
+// OpenCV
+
+
+// System
+#include <fstream>
+
 using namespace std;
 using namespace cv;
 
@@ -410,24 +415,19 @@ void draw_inliers(const cv::Mat& img1, const cv::Mat& img2, cv::Mat& img_com,
     y2 = (int)(ptpairs[i+1].y*vfactor+.5);
 
     if (color == 0) {
-      line(img_com,Point(x1,y1),Point(x2,y2),CV_RGB(255,255,0),2);
+      cv::line(img_com,Point(x1,y1),Point(x2,y2),CV_RGB(255,255,0),2);
     }
     else if (color == 1) {
-      line(img_com,Point(x1,y1),Point(x2,y2),CV_RGB(255,0,0),2);
+      cv::line(img_com,Point(x1,y1),Point(x2,y2),CV_RGB(255,0,0),2);
     }
     else if (color == 2) {
-      line(img_com,Point(x1,y1),Point(x2,y2),CV_RGB(0,0,255),2);
+      cv::line(img_com,Point(x1,y1),Point(x2,y2),CV_RGB(0,0,255),2);
     }
   }
 }
 
 /* ************************************************************************* */
-/**
- * @brief Function for reading the ground truth homography from a txt file
- * @param calib_file Name of the txt file that contains the ground truth data
- * @param H1toN Matrix to store the ground truth homography
- */
-void read_homography(const string& hFile, cv::Mat& H1toN) {
+bool read_homography(const string& hFile, cv::Mat& H1toN) {
 
   float h11 = 0.0, h12 = 0.0, h13 = 0.0;
   float h21 = 0.0, h22 = 0.0, h23 = 0.0;
@@ -436,25 +436,25 @@ void read_homography(const string& hFile, cv::Mat& H1toN) {
   char tmp_buf[tmp_buf_size];
 
   // Allocate memory for the OpenCV matrices
-  H1toN = Mat::zeros(3,3,CV_32FC1);
-
-  setlocale(LC_ALL,"C");
+  H1toN = cv::Mat::zeros(3,3,CV_32FC1);
 
   string filename(hFile);
-  ifstream infile;
-  infile.exceptions ( std::ifstream::eofbit | std::ifstream::failbit | std::ifstream::badbit );
-  infile.open(filename.c_str(), std::ifstream::in);
+  ifstream pf;
+  pf.open(filename.c_str(), std::ifstream::in);
 
-  infile.getline(tmp_buf,tmp_buf_size);
+  if (!pf.is_open())
+    return false;
+
+  pf.getline(tmp_buf,tmp_buf_size);
   sscanf(tmp_buf,"%f %f %f",&h11,&h12,&h13);
 
-  infile.getline(tmp_buf,tmp_buf_size);
+  pf.getline(tmp_buf,tmp_buf_size);
   sscanf(tmp_buf,"%f %f %f",&h21,&h22,&h23);
 
-  infile.getline(tmp_buf,tmp_buf_size);
+  pf.getline(tmp_buf,tmp_buf_size);
   sscanf(tmp_buf,"%f %f %f",&h31,&h32,&h33);
 
-  infile.close();
+  pf.close();
 
   H1toN.at<float>(0,0) = h11 / h33;
   H1toN.at<float>(0,1) = h12 / h33;
@@ -467,6 +467,8 @@ void read_homography(const string& hFile, cv::Mat& H1toN) {
   H1toN.at<float>(2,0) = h31 / h33;
   H1toN.at<float>(2,1) = h32 / h33;
   H1toN.at<float>(2,2) = h33 / h33;
+
+  return true;
 }
 
 /* ************************************************************************* */
@@ -476,6 +478,7 @@ static inline std::ostream& cout_help() {
   return cout;
 }
 
+/* ************************************************************************* */
 static inline std::string toUpper(std::string s) {
   std::transform(s.begin(), s.end(), s.begin(), ::toupper);
   return s;

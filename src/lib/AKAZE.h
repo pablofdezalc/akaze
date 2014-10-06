@@ -9,105 +9,103 @@
 #pragma once
 
 /* ************************************************************************* */
-// Includes
 #include "AKAZEConfig.h"
 #include "fed.h"
 #include "utils.h"
 #include "nldiffusion_functions.h"
 
 /* ************************************************************************* */
-// AKAZE Class Declaration
-class AKAZE {
+namespace libAKAZE {
+  class AKAZE {
 
-private:
+  private:
 
-  AKAZEOptions options_;                ///< Configuration options for AKAZE
-  std::vector<TEvolution> evolution_;	///< Vector of nonlinear diffusion evolution
+    AKAZEOptions options_;                ///< Configuration options for AKAZE
+    std::vector<TEvolution> evolution_;	///< Vector of nonlinear diffusion evolution
 
-  /// FED parameters
-  int ncycles_;                  ///< Number of cycles
-  bool reordering_;              ///< Flag for reordering time steps
-  std::vector<std::vector<float > > tsteps_;  ///< Vector of FED dynamic time steps
-  std::vector<int> nsteps_;      ///< Vector of number of steps per cycle
+    /// FED parameters
+    int ncycles_;                  ///< Number of cycles
+    bool reordering_;              ///< Flag for reordering time steps
+    std::vector<std::vector<float > > tsteps_;  ///< Vector of FED dynamic time steps
+    std::vector<int> nsteps_;      ///< Vector of number of steps per cycle
 
-  /// Matrices for the M-LDB descriptor computation
-  cv::Mat descriptorSamples_;  // List of positions in the grids to sample LDB bits from.
-  cv::Mat descriptorBits_;
-  cv::Mat bitMask_;
+    /// Matrices for the M-LDB descriptor computation
+    cv::Mat descriptorSamples_;  // List of positions in the grids to sample LDB bits from.
+    cv::Mat descriptorBits_;
+    cv::Mat bitMask_;
 
-  /// Computation times variables in ms
-  AKAZETiming timing_;
+    /// Computation times variables in ms
+    AKAZETiming timing_;
 
-public:
+  public:
 
-  /// Constructor with input arguments
-  AKAZE(const AKAZEOptions& options);
+    /// Constructor with input arguments
+    AKAZE(const AKAZEOptions& options);
 
-  /// Destructor
-  ~AKAZE();
+    /// Destructor
+    ~AKAZE();
 
-  /// Scale Space methods
-  void Allocate_Memory_Evolution();
-  int Create_Nonlinear_Scale_Space(const cv::Mat& img);
-  void Feature_Detection(std::vector<cv::KeyPoint>& kpts);
-  void Compute_Determinant_Hessian_Response(void);
-  void Compute_Multiscale_Derivatives(void);
-  void Find_Scale_Space_Extrema(std::vector<cv::KeyPoint>& kpts);
-  void Do_Subpixel_Refinement(std::vector<cv::KeyPoint>& kpts);
-  void Feature_Suppression_Distance(std::vector<cv::KeyPoint>& kpts, float mdist) const;
+    /// Scale Space methods
+    void Allocate_Memory_Evolution();
+    int Create_Nonlinear_Scale_Space(const cv::Mat& img);
+    void Feature_Detection(std::vector<cv::KeyPoint>& kpts);
+    void Compute_Determinant_Hessian_Response(void);
+    void Compute_Multiscale_Derivatives(void);
+    void Find_Scale_Space_Extrema(std::vector<cv::KeyPoint>& kpts);
+    void Do_Subpixel_Refinement(std::vector<cv::KeyPoint>& kpts);
+    void Feature_Suppression_Distance(std::vector<cv::KeyPoint>& kpts, float mdist) const;
 
-  /// Feature description methods
-  void Compute_Descriptors(std::vector<cv::KeyPoint>& kpts, cv::Mat& desc);
-  void Compute_Main_Orientation(cv::KeyPoint& kpt) const;
+    /// Feature description methods
+    void Compute_Descriptors(std::vector<cv::KeyPoint>& kpts, cv::Mat& desc);
+    void Compute_Main_Orientation(cv::KeyPoint& kpt) const;
 
-  /// SURF Pattern Descriptor
-  void Get_SURF_Descriptor_Upright_64(const cv::KeyPoint& kpt, float* desc) const;
-  void Get_SURF_Descriptor_64(const cv::KeyPoint& kpt, float* desc) const;
+    /// SURF Pattern Descriptor
+    void Get_SURF_Descriptor_Upright_64(const cv::KeyPoint& kpt, float* desc) const;
+    void Get_SURF_Descriptor_64(const cv::KeyPoint& kpt, float* desc) const;
 
-  /// M-SURF Pattern Descriptor
-  void Get_MSURF_Upright_Descriptor_64(const cv::KeyPoint& kpt, float* desc) const;
-  void Get_MSURF_Descriptor_64(const cv::KeyPoint& kpt, float* desc) const;
+    /// M-SURF Pattern Descriptor
+    void Get_MSURF_Upright_Descriptor_64(const cv::KeyPoint& kpt, float* desc) const;
+    void Get_MSURF_Descriptor_64(const cv::KeyPoint& kpt, float* desc) const;
 
-  /// M-LDB Pattern Descriptor
-  void Get_Upright_MLDB_Full_Descriptor(const cv::KeyPoint& kpt, unsigned char* desc) const;
-  void Get_MLDB_Full_Descriptor(const cv::KeyPoint& kpt, unsigned char* desc) const;
-  void Get_Upright_MLDB_Descriptor_Subset(const cv::KeyPoint& kpt, unsigned char* desc);
-  void Get_MLDB_Descriptor_Subset(const cv::KeyPoint& kpt, unsigned char* desc);
+    /// M-LDB Pattern Descriptor
+    void Get_Upright_MLDB_Full_Descriptor(const cv::KeyPoint& kpt, unsigned char* desc) const;
+    void Get_MLDB_Full_Descriptor(const cv::KeyPoint& kpt, unsigned char* desc) const;
+    void Get_Upright_MLDB_Descriptor_Subset(const cv::KeyPoint& kpt, unsigned char* desc);
+    void Get_MLDB_Descriptor_Subset(const cv::KeyPoint& kpt, unsigned char* desc);
 
-  /// Methods for saving some results and showing computation times
-  void Save_Scale_Space();
-  void Save_Detector_Responses();
-  void Show_Computation_Times() const;
+    /// Methods for saving some results
+    void Save_Scale_Space();
+    void Save_Detector_Responses();
 
-  /// Return the computation times
-  AKAZETiming Get_Computation_Times() const {
-    return timing_;
-  }
-};
+    /// Display timing information
+    void Show_Computation_Times() const;
 
-/* ************************************************************************* */
-/**
+    /// Return the computation times
+    AKAZETiming Get_Computation_Times() const {
+      return timing_;
+    }
+  };
+
+  /* ************************************************************************* */
+  /**
  * @brief This function sets default parameters for the A-KAZE detector.
  * @param options AKAZE options
  */
-void setDefaultAKAZEOptions(AKAZEOptions& options);
-void generateDescriptorSubsample(cv::Mat& sampleList, cv::Mat& comparisons,
-                                 int nbits, int pattern_size, int nchannels);
-float get_angle(float x, float y);
-float gaussian(float x, float y, float sigma);
-void check_descriptor_limits(int& x, int& y, int width, int height);
+  void setDefaultAKAZEOptions(AKAZEOptions& options);
+  void generateDescriptorSubsample(cv::Mat& sampleList, cv::Mat& comparisons,
+                                   int nbits, int pattern_size, int nchannels);
+  float get_angle(float x, float y);
 
-/**
- * @brief This function computes the value of a 2D Gaussian function
- * @param x X Position
- * @param y Y Position
- * @param sig Standard Deviation
-*/
-inline float gaussian(float x, float y, float sigma) {
-  return expf(-(x*x+y*y)/(2.0f*sigma*sigma));
-}
+  /// This function checks descriptor limits for a given keypoint
+  inline void check_descriptor_limits(int& x, int& y, int width, int height);
 
-/// This funtion rounds float to nearest integer
-inline int fRound(float flt) {
-  return (int)(flt+0.5f);
+  /// This function computes the value of a 2D Gaussian function
+  inline float gaussian(float x, float y, float sigma) {
+    return expf(-(x*x+y*y)/(2.0f*sigma*sigma));
+  }
+
+  /// This funtion rounds float to nearest integer
+  inline int fRound(float flt) {
+    return (int)(flt+0.5f);
+  }
 }

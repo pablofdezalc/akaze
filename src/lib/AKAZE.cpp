@@ -9,7 +9,7 @@
 #include "AKAZE.h"
 
 using namespace std;
-using namespace cv;
+using namespace libAKAZE;
 
 /* ************************************************************************* */
 /**
@@ -442,7 +442,7 @@ void AKAZE::Do_Subpixel_Refinement(std::vector<cv::KeyPoint>& kpts) {
     b(0) = -Dx;
     b(1) = -Dy;
 
-    cv::solve(A, b, dst, DECOMP_LU);
+    cv::solve(A, b, dst, cv::DECOMP_LU);
 
     if (fabs(dst(0)) <= 1.0 && fabs(dst(1)) <= 1.0) {
       kpts[i].pt.x = x + dst(0);
@@ -1746,7 +1746,7 @@ void AKAZE::Get_Upright_MLDB_Descriptor_Subset(const cv::KeyPoint& kpt, unsigned
   float xf = kpt.pt.x/ratio;
 
   // Allocate memory for the matrix of values
-  Mat values = cv::Mat_<float>::zeros((4+9+16)*options_.descriptor_channels, 1);
+  cv::Mat values = cv::Mat_<float>::zeros((4+9+16)*options_.descriptor_channels, 1);
 
   vector<int> steps(3);
   steps.at(0) = options_.descriptor_pattern_size;
@@ -1810,9 +1810,9 @@ void AKAZE::Get_Upright_MLDB_Descriptor_Subset(const cv::KeyPoint& kpt, unsigned
 /**
  * @brief This method saves the scale space into jpg images
 */
-void AKAZE::Save_Scale_Space(void) {
+void AKAZE::Save_Scale_Space() {
 
-  Mat img_aux;
+  cv::Mat img_aux;
   string outputFile;
 
   for (size_t i = 0; i < evolution_.size(); i++) {
@@ -1828,9 +1828,9 @@ void AKAZE::Save_Scale_Space(void) {
  * @brief This method saves the feature detector responses of the nonlinear scale space
  * into jpg images
 */
-void AKAZE::Save_Detector_Responses(void) {
+void AKAZE::Save_Detector_Responses() {
 
-  Mat img_aux;
+  cv::Mat img_aux;
   string outputFile;
   float ttime = 0.0;
   int nimgs = 0;
@@ -1849,9 +1849,6 @@ void AKAZE::Save_Detector_Responses(void) {
 
 
 /* ************************************************************************* */
-/**
- * @brief This method displays the computation times
-*/
 void AKAZE::Show_Computation_Times() const {
   cout << "(*) Time Scale Space: " << timing_.scale << endl;
   cout << "(*) Time Detector: " << timing_.detector << endl;
@@ -1876,8 +1873,8 @@ void AKAZE::Show_Computation_Times() const {
  * @note The function keeps the 18 bits (3-channels by 6 comparisons) of the
  * coarser grid, since it provides the most robust estimations
  */
-void generateDescriptorSubsample(cv::Mat& sampleList, cv::Mat& comparisons, int nbits,
-                                 int pattern_size, int nchannels) {
+void libAKAZE::generateDescriptorSubsample(cv::Mat& sampleList, cv::Mat& comparisons, int nbits,
+                                           int pattern_size, int nchannels) {
 
   int ssz = 0;
   for (int i=0; i<3; i++) {
@@ -1893,7 +1890,7 @@ void generateDescriptorSubsample(cv::Mat& sampleList, cv::Mat& comparisons, int 
   // pick as the number of channels. For every pick, we
   // take the two samples involved and put them in the sampling list
 
-  Mat_<int> fullM(ssz/nchannels,5);
+  cv::Mat_<int> fullM(ssz/nchannels,5);
   for (size_t i=0, c=0; i<3; i++) {
     int gdiv = i+2; //grid divisions, per row
     int gsz = gdiv*gdiv;
@@ -1911,14 +1908,14 @@ void generateDescriptorSubsample(cv::Mat& sampleList, cv::Mat& comparisons, int 
   }
 
   srand(1024);
-  Mat_<int> comps = Mat_<int>(nchannels*ceil(nbits/(float)nchannels),2);
+  cv:: Mat_<int> comps = cv::Mat_<int>(nchannels*ceil(nbits/(float)nchannels),2);
   comps = 1000;
 
   // Select some samples. A sample includes all channels
   int count =0;
   size_t npicks = ceil(nbits/(float)nchannels);
-  Mat_<int> samples(29,3);
-  Mat_<int> fullcopy = fullM.clone();
+  cv::Mat_<int> samples(29,3);
+  cv::Mat_<int> fullcopy = fullM.clone();
   samples = -1;
 
   for (size_t i=0; i<npicks; i++) {
@@ -1971,7 +1968,7 @@ void generateDescriptorSubsample(cv::Mat& sampleList, cv::Mat& comparisons, int 
       count++;
     }
 
-    Mat tmp = fullcopy.row(k);
+    cv::Mat tmp = fullcopy.row(k);
     fullcopy.row(fullcopy.rows-i-1).copyTo(tmp);
   }
 
@@ -1983,7 +1980,7 @@ void generateDescriptorSubsample(cv::Mat& sampleList, cv::Mat& comparisons, int 
 /**
  * @brief This function computes the angle from the vector given by (X Y). From 0 to 2*Pi
 */
-inline float get_angle(float x, float y) {
+inline float libAKAZE::get_angle(float x, float y) {
 
   if (x >= 0 && y >= 0)
     return atanf(y/x);
@@ -2001,14 +1998,7 @@ inline float get_angle(float x, float y) {
 }
 
 /* ************************************************************************* */
-/**
- * @brief This function checks descriptor limits
- * @param x X Position
- * @param y Y Position
- * @param width Image width
- * @param height Image height
-*/
-inline void check_descriptor_limits(int &x, int &y, int width, int height) {
+void libAKAZE::check_descriptor_limits(int &x, int &y, int width, int height) {
 
   if (x < 0)
     x = 0;

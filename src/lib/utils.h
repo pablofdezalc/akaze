@@ -8,18 +8,14 @@
 #pragma once
 
 /* ************************************************************************* */
-// OpenCV Includes
+// OpenCV
 #include <opencv2/opencv.hpp>
 #include <opencv2/features2d/features2d.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
-// System Includes
-#include <stdlib.h>
-#include <stdio.h>
-#include <cstdlib>
+// System
 #include <vector>
-#include <fstream>
 #include <iostream>
 #include <iomanip>
 
@@ -70,6 +66,9 @@ void draw_inliers(const cv::Mat& img1, const cv::Mat& img2, cv::Mat& img_com,
                   const std::vector<cv::Point2f>& ptpairs);
 void draw_inliers(const cv::Mat& img1, const cv::Mat& img2, cv::Mat& img_com,
                   const std::vector<cv::Point2f>& ptpairs, int color);
-void read_homography(const std::string& hFile, cv::Mat& H1toN);
+
+/// Function for reading the ground truth homography from a txt file
+bool read_homography(const std::string& hFile, cv::Mat& H1toN);
+
 void show_input_options_help(int example);
 

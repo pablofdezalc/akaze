@@ -25,7 +25,6 @@ using namespace std;
 
 /* ************************************************************************* */
 // Image matching options
-const bool COMPUTE_INLIERS_RANSAC = true;	///< 0->Use ground truth homography, 1->Estimate homography with RANSAC
 const float MIN_H_ERROR = 2.50f;            ///< Maximum error in pixels to accept an inlier
 const float DRATIO = 0.80f;                 ///< NNDR Matching value
 
@@ -80,27 +79,29 @@ int main(int argc, char *argv[]) {
   }
 
   // Read ground truth homography file
-  read_homography(homography_path,HG);
+  bool use_ransac = false;
+  if (read_homography(homography_path, HG) == false)
+    use_ransac = true;
 
   // Convert the images to float
   img1.convertTo(img1_32, CV_32F, 1.0/255.0, 0);
   img2.convertTo(img2_32, CV_32F, 1.0/255.0, 0);
 
   // Color images for results visualization
-  img1_rgb = cv::Mat(cv::Size(img1.cols,img1.rows), CV_8UC3);
-  img2_rgb = cv::Mat(cv::Size(img2.cols,img1.rows), CV_8UC3);
+  img1_rgb = cv::Mat(cv::Size(img1.cols, img1.rows), CV_8UC3);
+  img2_rgb = cv::Mat(cv::Size(img2.cols, img1.rows), CV_8UC3);
   img_com = cv::Mat(cv::Size(img1.cols*2,img1.rows), CV_8UC3);
   img_r = cv::Mat(cv::Size(img_com.cols*rfactor, img_com.rows*rfactor), CV_8UC3);
 
   // Create the first AKAZE object
   options.img_width = img1.cols;
   options.img_height = img1.rows;
-  AKAZE evolution1(options);
+  libAKAZE::AKAZE evolution1(options);
 
   // Create the second HKAZE object
   options.img_width = img2.cols;
   options.img_height = img2.rows;
-  AKAZE evolution2(options);
+  libAKAZE::AKAZE evolution2(options);
 
   t1 = cv::getTickCount();
 
@@ -141,12 +142,10 @@ int main(int argc, char *argv[]) {
   // Compute Inliers!!
   matches2points_nndr(kpts1, kpts2, dmatches, matches, DRATIO);
 
-  if (COMPUTE_INLIERS_RANSAC == false) {
+  if (use_ransac == false)
     compute_inliers_homography(matches, inliers, HG, MIN_H_ERROR);
-  }
-  else {
+  else
     compute_inliers_ransac(matches, inliers, MIN_H_ERROR, false);
-  }
 
   // Compute the inliers statistics
   nmatches = matches.size()/2;
@@ -171,8 +170,11 @@ int main(int argc, char *argv[]) {
   draw_keypoints(img1_rgb,kpts1);
   draw_keypoints(img2_rgb,kpts2);
   draw_inliers(img1_rgb,img2_rgb,img_com,inliers);
+  cv::namedWindow("Inliers", CV_WINDOW_NORMAL);
   cv::imshow("Inliers",img_com);
   cv::waitKey(0);
+
+  imwrite("test.jpg", img_com);
 }
 
 /* ************************************************************************* */
@@ -197,7 +199,9 @@ int parse_input_options(AKAZEOptions& options, std::string& img_path1, std::stri
 
     img_path1 = argv[1];
     img_path2 = argv[2];
-    homography_path = argv[3];
+
+    if (argc >= 4)
+     homography_path = argv[3];
 
     for (int i = 1; i < argc; i++) {
       if (!strcmp(argv[i],"--soffset")) {

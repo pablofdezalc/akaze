@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
   // Extract features.
   vector<cv::KeyPoint> kpts;
   t1 = cv::getTickCount();
-  AKAZE evolution(options);
+  libAKAZE::AKAZE evolution(options);
   evolution.Create_Nonlinear_Scale_Space(img_32);
   evolution.Feature_Detection(kpts);
   t2 = cv::getTickCount();
