@@ -156,31 +156,29 @@ int fed_tau_internal(const int& n, const float& scale, const float& tau_max,
  * @return true if the number is prime
  */
 bool fed_is_prime_internal(const int& number) {
-  bool is_prime = false;
 
   if (number <= 1) {
     return false;
   }
-  else if (number == 1 || number == 2 || number == 3 || number == 5 || number == 7) {
+  else if (number == 2 || number == 3 || number == 5 || number == 7) {
     return true;
   }
   else if ((number % 2) == 0 || (number % 3) == 0 || (number % 5) == 0 || (number % 7) == 0) {
     return false;
   }
   else {
-    is_prime = true;
     int upperLimit = sqrt(number+1.0);
     int divisor = 11;
 
     while (divisor <= upperLimit ) {
       if (number % divisor == 0)
       {
-        is_prime = false;
+        return false;
       }
 
       divisor +=2;
     }
 
-    return is_prime;
+    return true;
   }
 }
