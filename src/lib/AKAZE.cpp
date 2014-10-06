@@ -374,7 +374,7 @@ void AKAZE::Find_Scale_Space_Extrema(std::vector<cv::KeyPoint>& kpts) {
       if ((point.class_id+1) == kpts_aux[j].class_id) {
 
         dist = (point.pt.x-kpts_aux[j].pt.x)*(point.pt.x-kpts_aux[j].pt.x) +
-               (point.pt.y-kpts_aux[j].pt.y)*(point.pt.y-kpts_aux[j].pt.y);
+            (point.pt.y-kpts_aux[j].pt.y)*(point.pt.y-kpts_aux[j].pt.y);
 
         if (dist <= point.size*point.size) {
           if (point.response < kpts_aux[j].response) {
@@ -1985,34 +1985,19 @@ void generateDescriptorSubsample(cv::Mat& sampleList, cv::Mat& comparisons, int 
 */
 inline float get_angle(float x, float y) {
 
-  if (x >= 0 && y >= 0) {
+  if (x >= 0 && y >= 0)
     return atanf(y/x);
-  }
 
-  if (x < 0 && y >= 0) {
+  if (x < 0 && y >= 0)
     return CV_PI - atanf(-y/x);
-  }
 
-  if (x < 0 && y < 0) {
+  if (x < 0 && y < 0)
     return CV_PI + atanf(y/x);
-  }
 
-  if(x >= 0 && y < 0) {
+  if(x >= 0 && y < 0)
     return 2.0*CV_PI - atanf(-y/x);
-  }
 
   return 0;
-}
-
-/* ************************************************************************* */
-/**
- * @brief This function computes the value of a 2D Gaussian function
- * @param x X Position
- * @param y Y Position
- * @param sig Standard Deviation
-*/
-inline float gaussian(float x, float y, float sigma) {
-  return expf(-(x*x+y*y)/(2.0f*sigma*sigma));
 }
 
 /* ************************************************************************* */
@@ -2025,30 +2010,16 @@ inline float gaussian(float x, float y, float sigma) {
 */
 inline void check_descriptor_limits(int &x, int &y, int width, int height) {
 
-  if (x < 0) {
+  if (x < 0)
     x = 0;
-  }
 
-  if (y < 0) {
+  if (y < 0)
     y = 0;
-  }
 
-  if (x > width-1) {
+  if (x > width-1)
     x = width-1;
-  }
 
-  if (y > height-1) {
+  if (y > height-1)
     y = height-1;
-  }
-}
-
-/* ************************************************************************* */
-/**
- * @brief This funtion rounds float to nearest integer
- * @param flt Input float
- * @return dst Nearest integer
- */
-inline int fRound(float flt) {
-  return (int)(flt+0.5f);
 }
 

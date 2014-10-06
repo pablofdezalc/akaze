@@ -56,25 +56,25 @@ public:
   void Do_Subpixel_Refinement(std::vector<cv::KeyPoint>& kpts);
   void Feature_Suppression_Distance(std::vector<cv::KeyPoint>& kpts, float mdist) const;
 
-  // Feature description methods
+  /// Feature description methods
   void Compute_Descriptors(std::vector<cv::KeyPoint>& kpts, cv::Mat& desc);
   void Compute_Main_Orientation(cv::KeyPoint& kpt) const;
 
-  // SURF Pattern Descriptor
+  /// SURF Pattern Descriptor
   void Get_SURF_Descriptor_Upright_64(const cv::KeyPoint& kpt, float* desc) const;
   void Get_SURF_Descriptor_64(const cv::KeyPoint& kpt, float* desc) const;
 
-  // M-SURF Pattern Descriptor
+  /// M-SURF Pattern Descriptor
   void Get_MSURF_Upright_Descriptor_64(const cv::KeyPoint& kpt, float* desc) const;
   void Get_MSURF_Descriptor_64(const cv::KeyPoint& kpt, float* desc) const;
 
-  // M-LDB Pattern Descriptor
+  /// M-LDB Pattern Descriptor
   void Get_Upright_MLDB_Full_Descriptor(const cv::KeyPoint& kpt, unsigned char* desc) const;
   void Get_MLDB_Full_Descriptor(const cv::KeyPoint& kpt, unsigned char* desc) const;
   void Get_Upright_MLDB_Descriptor_Subset(const cv::KeyPoint& kpt, unsigned char* desc);
   void Get_MLDB_Descriptor_Subset(const cv::KeyPoint& kpt, unsigned char* desc);
 
-  // Methods for saving some results and showing computation times
+  /// Methods for saving some results and showing computation times
   void Save_Scale_Space();
   void Save_Detector_Responses();
   void Show_Computation_Times() const;
@@ -86,17 +86,28 @@ public:
 };
 
 /* ************************************************************************* */
-// Inline functions
 /**
  * @brief This function sets default parameters for the A-KAZE detector.
  * @param options AKAZE options
  */
 void setDefaultAKAZEOptions(AKAZEOptions& options);
-
-// Inline functions
 void generateDescriptorSubsample(cv::Mat& sampleList, cv::Mat& comparisons,
                                  int nbits, int pattern_size, int nchannels);
 float get_angle(float x, float y);
 float gaussian(float x, float y, float sigma);
 void check_descriptor_limits(int& x, int& y, int width, int height);
-int fRound(float flt);
+
+/**
+ * @brief This function computes the value of a 2D Gaussian function
+ * @param x X Position
+ * @param y Y Position
+ * @param sig Standard Deviation
+*/
+inline float gaussian(float x, float y, float sigma) {
+  return expf(-(x*x+y*y)/(2.0f*sigma*sigma));
+}
+
+/// This funtion rounds float to nearest integer
+inline int fRound(float flt) {
+  return (int)(flt+0.5f);
+}
