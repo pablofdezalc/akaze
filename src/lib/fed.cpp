@@ -2,12 +2,12 @@
 //
 // fed.cpp
 // Authors: Pablo F. Alcantarilla (1), Jesus Nuevo (2)
-// Institutions: Georgia Institute of Technology (1)
+// Institutions: Toshiba Research Europe Ltd (1)
 //               TrueVision Solutions (2)
-// Date: 15/09/2013
+// Date: 07/10/2014
 // Email: pablofdezalc@gmail.com
 //
-// AKAZE Features Copyright 2013, Pablo F. Alcantarilla, Jesus Nuevo
+// AKAZE Features Copyright 2014, Pablo F. Alcantarilla, Jesus Nuevo
 // All Rights Reserved
 // See LICENSE for the license information
 //=============================================================================
@@ -16,7 +16,7 @@
  * @file fed.cpp
  * @brief Functions for performing Fast Explicit Diffusion and building the
  * nonlinear scale space
- * @date Sep 15, 2013
+ * @date Oct 07, 2014
  * @author Pablo F. Alcantarilla, Jesus Nuevo
  * @note This code is derived from FED/FJ library from Grewenig et al.,
  * The FED/FJ library allows solving more advanced problems
@@ -31,41 +31,23 @@
 
 #define _USE_MATH_DEFINES
 #include "fed.h"
+
+// System
 #include <cmath>
 
 using namespace std;
 
 /* ************************************************************************* */
-/**
- * @brief This function allocates an array of the least number of time steps such
- * that a certain stopping time for the whole process can be obtained and fills
- * it with the respective FED time step sizes for one cycle
- * The function returns the number of time steps per cycle or 0 on failure
- * @param T Desired process stopping time
- * @param M Desired number of cycles
- * @param tau_max Stability limit for the explicit scheme
- * @param reordering Reordering flag
- * @param tau The vector with the dynamic step sizes
- */
-int fed_tau_by_process_time(const float& T, const int& M, const float& tau_max,
-                            const bool& reordering, std::vector<float>& tau) {
+int fed_tau_by_process_time(const float T, const int M, const float tau_max,
+                            const bool reordering, std::vector<float>& tau) {
   // All cycles have the same fraction of the stopping time
   return fed_tau_by_cycle_time(T/(float)M,tau_max,reordering,tau);
 }
 
 /* ************************************************************************* */
-/**
- * @brief This function allocates an array of the least number of time steps such
- * that a certain stopping time for the whole process can be obtained and fills it
- * it with the respective FED time step sizes for one cycle
- * The function returns the number of time steps per cycle or 0 on failure
- * @param t Desired cycle stopping time
- * @param tau_max Stability limit for the explicit scheme
- * @param reordering Reordering flag
- * @param tau The vector with the dynamic step sizes
- */
-int fed_tau_by_cycle_time(const float& t, const float& tau_max,
-                          const bool& reordering, std::vector<float> &tau) {
+int fed_tau_by_cycle_time(const float t, const float tau_max,
+                          const bool reordering, std::vector<float>& tau) {
+
   int n = 0;          // Number of time steps
   float scale = 0.0;  // Ratio of t we search to maximal t
 
@@ -78,31 +60,20 @@ int fed_tau_by_cycle_time(const float& t, const float& tau_max,
 }
 
 /* ************************************************************************* */
-/**
- * @brief This function allocates an array of time steps and fills it with FED
- * time step sizes
- * The function returns the number of time steps per cycle or 0 on failure
- * @param n Number of internal steps
- * @param scale Ratio of t we search to maximal t
- * @param tau_max Stability limit for the explicit scheme
- * @param reordering Reordering flag
- * @param tau The vector with the dynamic step sizes
- */
-int fed_tau_internal(const int& n, const float& scale, const float& tau_max,
-                     const bool& reordering, std::vector<float> &tau) {
+int fed_tau_internal(const int n, const float scale, const float tau_max,
+                     const bool reordering, std::vector<float>& tau) {
+
   float c = 0.0, d = 0.0;     // Time savers
   vector<float> tauh;    // Helper vector for unsorted taus
 
-  if (n <= 0) {
+  if (n <= 0)
     return 0;
-  }
 
   // Allocate memory for the time step size
   tau = vector<float>(n);
 
-  if (reordering) {
+  if (reordering)
     tauh = vector<float>(n);
-  }
 
   // Compute time saver
   c = 1.0f / (4.0f * (float)n + 2.0f);
@@ -112,12 +83,10 @@ int fed_tau_internal(const int& n, const float& scale, const float& tau_max,
   for (int k = 0; k < n; ++k) {
     float h = cos(M_PI * (2.0f * (float)k + 1.0f) * c);
 
-    if (reordering) {
+    if (reordering)
       tauh[k] = d / (h * h);
-    }
-    else {
+    else
       tau[k] = d / (h * h);
-    }
   }
 
   // Permute list of time steps according to chosen reordering function
@@ -150,12 +119,7 @@ int fed_tau_internal(const int& n, const float& scale, const float& tau_max,
 }
 
 /* ************************************************************************* */
-/**
- * @brief This function checks if a number is prime or not
- * @param number Number to check if it is prime or not
- * @return true if the number is prime
- */
-bool fed_is_prime_internal(const int& number) {
+bool fed_is_prime_internal(const int number) {
 
   if (number <= 1) {
     return false;
