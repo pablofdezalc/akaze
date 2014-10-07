@@ -8,6 +8,9 @@
 
 #include "AKAZE.h"
 
+// OpenCV
+#include <opencv/cxmisc.h>
+
 using namespace std;
 using namespace libAKAZE;
 
@@ -151,7 +154,6 @@ int AKAZE::Create_Nonlinear_Scale_Space(const cv::Mat& img) {
   t2 = cv::getTickCount();
   timing_.scale = 1000.0*(t2-t1) / cv::getTickFrequency();
 
-  cout << "Timing scale: " << timing_.scale << endl;
   return 0;
 }
 
@@ -380,23 +382,23 @@ void AKAZE::Do_Subpixel_Refinement(std::vector<cv::KeyPoint>& kpts) {
 
     // Compute the gradient
     Dx = (0.5)*(*(evolution_[kpts[i].class_id].Ldet.ptr<float>(y)+x+1)
-                -*(evolution_[kpts[i].class_id].Ldet.ptr<float>(y)+x-1));
+        -*(evolution_[kpts[i].class_id].Ldet.ptr<float>(y)+x-1));
     Dy = (0.5)*(*(evolution_[kpts[i].class_id].Ldet.ptr<float>(y+1)+x)
-                -*(evolution_[kpts[i].class_id].Ldet.ptr<float>(y-1)+x));
+        -*(evolution_[kpts[i].class_id].Ldet.ptr<float>(y-1)+x));
 
     // Compute the Hessian
     Dxx = (*(evolution_[kpts[i].class_id].Ldet.ptr<float>(y)+x+1)
-           + *(evolution_[kpts[i].class_id].Ldet.ptr<float>(y)+x-1)
-           -2.0*(*(evolution_[kpts[i].class_id].Ldet.ptr<float>(y)+x)));
+        + *(evolution_[kpts[i].class_id].Ldet.ptr<float>(y)+x-1)
+        -2.0*(*(evolution_[kpts[i].class_id].Ldet.ptr<float>(y)+x)));
 
     Dyy = (*(evolution_[kpts[i].class_id].Ldet.ptr<float>(y+1)+x)
-           + *(evolution_[kpts[i].class_id].Ldet.ptr<float>(y-1)+x)
-           -2.0*(*(evolution_[kpts[i].class_id].Ldet.ptr<float>(y)+x)));
+        + *(evolution_[kpts[i].class_id].Ldet.ptr<float>(y-1)+x)
+        -2.0*(*(evolution_[kpts[i].class_id].Ldet.ptr<float>(y)+x)));
 
     Dxy = (0.25)*(*(evolution_[kpts[i].class_id].Ldet.ptr<float>(y+1)+x+1)
-                  +(*(evolution_[kpts[i].class_id].Ldet.ptr<float>(y-1)+x-1)))
+        +(*(evolution_[kpts[i].class_id].Ldet.ptr<float>(y-1)+x-1)))
         -(0.25)*(*(evolution_[kpts[i].class_id].Ldet.ptr<float>(y-1)+x+1)
-                 +(*(evolution_[kpts[i].class_id].Ldet.ptr<float>(y+1)+x-1)));
+        +(*(evolution_[kpts[i].class_id].Ldet.ptr<float>(y+1)+x-1)));
 
     // Solve the linear system
     A(0,0) = Dxx;
@@ -998,53 +1000,92 @@ void AKAZE::Get_MSURF_Descriptor_64(const cv::KeyPoint& kpt, float *desc) const 
 }
 
 /* ************************************************************************* */
-void AKAZE::Get_Upright_MLDB_Full_Descriptor(const cv::KeyPoint& kpt, unsigned char *desc) const {
+void AKAZE::Get_MLDB_Full_Descriptor(const cv::KeyPoint& kpt, unsigned char* desc) const {
 
-  float di = 0.0, dx = 0.0, dy = 0.0;
-  float ri = 0.0, rx = 0.0, ry = 0.0, xf = 0.0, yf = 0.0;
-  float sample_x = 0.0, sample_y = 0.0, ratio = 0.0;
-  int x1 = 0, y1 = 0, sample_step = 0, pattern_size = 0;
-  int level = 0, nsamples = 0, scale = 0;
-  int dcount1 = 0, dcount2 = 0;
+  const int max_channels = 3;
+  CV_Assert(options_.descriptor_channels <= max_channels);
+  float values[16*max_channels];
+  const double size_mult[3] = {1, 2.0/3.0, 1.0/2.0};
 
-  // Matrices for the M-LDB descriptor
-  cv::Mat values_1 = cv::Mat::zeros(4, options_.descriptor_channels, CV_32FC1);
-  cv::Mat values_2 = cv::Mat::zeros(9, options_.descriptor_channels, CV_32FC1);
-  cv::Mat values_3 = cv::Mat::zeros(16, options_.descriptor_channels, CV_32FC1);
+  float ratio = (float)(1 << kpt.octave);
+  float scale = (float)fRound(0.5f*kpt.size / ratio);
+  float xf = kpt.pt.x / ratio;
+  float yf = kpt.pt.y / ratio;
+  float co = cos(kpt.angle);
+  float si = sin(kpt.angle);
+  int pattern_size = options_.descriptor_pattern_size;
 
-  // Get the information from the keypoint
-  ratio = (float)(1<<kpt.octave);
-  scale = fRound(0.5*kpt.size/ratio);
-  level = kpt.class_id;
-  yf = kpt.pt.y/ratio;
-  xf = kpt.pt.x/ratio;
+  int dpos = 0;
+  for(int lvl = 0; lvl < 3; lvl++) {
+    int val_count = (lvl + 2) * (lvl + 2);
+    int sample_step = static_cast<int>(ceil(pattern_size * size_mult[lvl]));
+    MLDB_Fill_Values(values, sample_step, kpt.class_id, xf, yf, co, si, scale);
+    MLDB_Binary_Comparisons(values, desc, val_count, dpos);
+  }
+}
 
-  // First 2x2 grid
-  pattern_size = options_.descriptor_pattern_size;
-  sample_step = pattern_size;
+/* ************************************************************************* */
+void AKAZE::Get_Upright_MLDB_Full_Descriptor(const cv::KeyPoint& kpt, unsigned char* desc) const {
 
-  for (int i = -pattern_size; i < pattern_size; i+=sample_step) {
-    for (int j = -pattern_size; j < pattern_size; j+=sample_step) {
-      di=dx=dy=0.0;
-      nsamples = 0;
+  const int max_channels = 3;
+  CV_Assert(options_.descriptor_channels <= max_channels);
+  float values[16*max_channels];
+  const double size_mult[3] = {1, 2.0/3.0, 1.0/2.0};
+
+  float ratio = (float)(1 << kpt.octave);
+  float scale = (float)fRound(0.5f*kpt.size / ratio);
+  float xf = kpt.pt.x / ratio;
+  float yf = kpt.pt.y / ratio;
+  int pattern_size = options_.descriptor_pattern_size;
+
+  int dpos = 0;
+  for(int lvl = 0; lvl < 3; lvl++) {
+    int val_count = (lvl + 2) * (lvl + 2);
+    int sample_step = static_cast<int>(ceil(pattern_size * size_mult[lvl]));
+    MLDB_Fill_Upright_Values(values, sample_step, kpt.class_id, xf, yf, scale);
+    MLDB_Binary_Comparisons(values, desc, val_count, dpos);
+  }
+}
+
+/* ************************************************************************* */
+void AKAZE::MLDB_Fill_Values(float* values, int sample_step, int level,
+                             float xf, float yf, float co, float si, float scale) const {
+
+  int pattern_size = options_.descriptor_pattern_size;
+  int nr_channels = options_.descriptor_channels;
+  int valpos = 0;
+
+  for (int i = -pattern_size; i < pattern_size; i += sample_step) {
+    for (int j = -pattern_size; j < pattern_size; j += sample_step) {
+
+      float di = 0.0, dx = 0.0, dy = 0.0;
+      int nsamples = 0;
 
       for (int k = i; k < i + sample_step; k++) {
         for (int l = j; l < j + sample_step; l++) {
 
-          // Get the coordinates of the sample point
-          sample_y = yf + l*scale;
-          sample_x = xf + k*scale;
+          float sample_y = yf + (l*co*scale + k*si*scale);
+          float sample_x = xf + (-l*si*scale + k*co*scale);
 
-          y1 = fRound(sample_y);
-          x1 = fRound(sample_x);
+          int y1 = fRound(sample_y);
+          int x1 = fRound(sample_x);
 
-          ri = *(evolution_[level].Lt.ptr<float>(y1)+x1);
-          rx = *(evolution_[level].Lx.ptr<float>(y1)+x1);
-          ry = *(evolution_[level].Ly.ptr<float>(y1)+x1);
-
+          float ri = *(evolution_[level].Lt.ptr<float>(y1)+x1);
           di += ri;
-          dx += rx;
-          dy += ry;
+
+          if(nr_channels > 1) {
+            float rx = *(evolution_[level].Lx.ptr<float>(y1)+x1);
+            float ry = *(evolution_[level].Ly.ptr<float>(y1)+x1);
+            if (nr_channels == 2) {
+              dx += sqrtf(rx*rx + ry*ry);
+            }
+            else {
+              float rry = rx*co + ry*si;
+              float rrx = -rx*si + ry*co;
+              dx += rrx;
+              dy += rry;
+            }
+          }
           nsamples++;
         }
       }
@@ -1053,59 +1094,57 @@ void AKAZE::Get_Upright_MLDB_Full_Descriptor(const cv::KeyPoint& kpt, unsigned c
       dx /= nsamples;
       dy /= nsamples;
 
-      *(values_1.ptr<float>(dcount2)) = di;
-      *(values_1.ptr<float>(dcount2)+1) = dx;
-      *(values_1.ptr<float>(dcount2)+2) = dy;
-      dcount2++;
+      values[valpos] = di;
+
+      if (nr_channels > 1)
+        values[valpos + 1] = dx;
+
+      if (nr_channels > 2)
+        values[valpos + 2] = dy;
+
+      valpos += nr_channels;
     }
   }
+}
 
-  // Do binary comparison first level
-  for(int i = 0; i < 4; i++) {
-    for (int j = i+1; j < 4; j++) {
-      if (*(values_1.ptr<float>(i)) > *(values_1.ptr<float>(j))) {
-        desc[dcount1/8] |= (1<<(dcount1%8));
-      }
-      dcount1++;
 
-      if (*(values_1.ptr<float>(i)+1) > *(values_1.ptr<float>(j)+1)) {
-        desc[dcount1/8] |= (1<<(dcount1%8));
-      }
-      dcount1++;
+/* ************************************************************************* */
+void AKAZE::MLDB_Fill_Upright_Values(float* values, int sample_step, int level,
+                                     float xf, float yf, float scale) const {
 
-      if (*(values_1.ptr<float>(i)+2) > *(values_1.ptr<float>(j)+2)) {
-        desc[dcount1/8] |= (1<<(dcount1%8));
-      }
-      dcount1++;
-    }
-  }
+  int pattern_size = options_.descriptor_pattern_size;
+  int nr_channels = options_.descriptor_channels;
+  int valpos = 0;
 
-  // Second 3x3 grid
-  sample_step = ceil(pattern_size*2./3.);
-  dcount2 = 0;
+  for (int i = -pattern_size; i < pattern_size; i += sample_step) {
+    for (int j = -pattern_size; j < pattern_size; j += sample_step) {
 
-  for (int i = -pattern_size; i < pattern_size; i+=sample_step) {
-    for (int j = -pattern_size; j < pattern_size; j+=sample_step) {
-      di=dx=dy=0.0;
-      nsamples = 0;
+      float di = 0.0, dx = 0.0, dy = 0.0;
+      int nsamples = 0;
 
       for (int k = i; k < i + sample_step; k++) {
         for (int l = j; l < j + sample_step; l++) {
 
-          // Get the coordinates of the sample point
-          sample_y = yf + l*scale;
-          sample_x = xf + k*scale;
+          float sample_y = yf + l*scale;
+          float sample_x = xf + k*scale;
 
-          y1 = fRound(sample_y);
-          x1 = fRound(sample_x);
+          int y1 = fRound(sample_y);
+          int x1 = fRound(sample_x);
 
-          ri = *(evolution_[level].Lt.ptr<float>(y1)+x1);
-          rx = *(evolution_[level].Lx.ptr<float>(y1)+x1);
-          ry = *(evolution_[level].Ly.ptr<float>(y1)+x1);
-
+          float ri = *(evolution_[level].Lt.ptr<float>(y1)+x1);
           di += ri;
-          dx += rx;
-          dy += ry;
+
+          if(nr_channels > 1) {
+            float rx = *(evolution_[level].Lx.ptr<float>(y1)+x1);
+            float ry = *(evolution_[level].Ly.ptr<float>(y1)+x1);
+            if (nr_channels == 2) {
+              dx += sqrtf(rx*rx + ry*ry);
+            }
+            else {
+              dx += rx;
+              dy += ry;
+            }
+          }
           nsamples++;
         }
       }
@@ -1114,391 +1153,42 @@ void AKAZE::Get_Upright_MLDB_Full_Descriptor(const cv::KeyPoint& kpt, unsigned c
       dx /= nsamples;
       dy /= nsamples;
 
-      *(values_2.ptr<float>(dcount2)) = di;
-      *(values_2.ptr<float>(dcount2)+1) = dx;
-      *(values_2.ptr<float>(dcount2)+2) = dy;
-      dcount2++;
-    }
-  }
+      values[valpos] = di;
 
-  //Do binary comparison second level
-  dcount2 = 0;
-  for (int i = 0; i < 9; i++) {
-    for (int j = i+1; j < 9; j++) {
-      if (*(values_2.ptr<float>(i)) > *(values_2.ptr<float>(j))) {
-        desc[dcount1/8] |= (1<<(dcount1%8));
-      }
-      dcount1++;
+      if (nr_channels > 1)
+        values[valpos + 1] = dx;
 
-      if (*(values_2.ptr<float>(i)+1) > *(values_2.ptr<float>(j)+1)) {
-        desc[dcount1/8] |= (1<<(dcount1%8));
-      }
-      dcount1++;
+      if (nr_channels > 2)
+        values[valpos + 2] = dy;
 
-      if(*(values_2.ptr<float>(i)+2) > *(values_2.ptr<float>(j)+2)) {
-        desc[dcount1/8] |= (1<<(dcount1%8));
-      }
-      dcount1++;
-    }
-  }
-
-  // Third 4x4 grid
-  sample_step = pattern_size/2;
-  dcount2 = 0;
-
-  for (int i = -pattern_size; i < pattern_size; i+=sample_step) {
-    for (int j = -pattern_size; j < pattern_size; j+=sample_step) {
-      di=dx=dy=0.0;
-      nsamples = 0;
-
-      for (int k = i; k < i + sample_step; k++) {
-        for (int l = j; l < j + sample_step; l++) {
-
-          // Get the coordinates of the sample point
-          sample_y = yf + l*scale;
-          sample_x = xf + k*scale;
-
-          y1 = fRound(sample_y);
-          x1 = fRound(sample_x);
-
-          ri = *(evolution_[level].Lt.ptr<float>(y1)+x1);
-          rx = *(evolution_[level].Lx.ptr<float>(y1)+x1);
-          ry = *(evolution_[level].Ly.ptr<float>(y1)+x1);
-
-          di += ri;
-          dx += rx;
-          dy += ry;
-          nsamples++;
-        }
-      }
-
-      di /= nsamples;
-      dx /= nsamples;
-      dy /= nsamples;
-
-      *(values_3.ptr<float>(dcount2)) = di;
-      *(values_3.ptr<float>(dcount2)+1) = dx;
-      *(values_3.ptr<float>(dcount2)+2) = dy;
-      dcount2++;
-    }
-  }
-
-  //Do binary comparison third level
-  dcount2 = 0;
-  for (int i = 0; i < 16; i++) {
-    for (int j = i+1; j < 16; j++) {
-      if (*(values_3.ptr<float>(i)) > *(values_3.ptr<float>(j))) {
-        desc[dcount1/8] |= (1<<(dcount1%8));
-      }
-      dcount1++;
-
-      if (*(values_3.ptr<float>(i)+1) > *(values_3.ptr<float>(j)+1)) {
-        desc[dcount1/8] |= (1<<(dcount1%8));
-      }
-      dcount1++;
-
-      if (*(values_3.ptr<float>(i)+2) > *(values_3.ptr<float>(j)+2)) {
-        desc[dcount1/8] |= (1<<(dcount1%8));
-      }
-      dcount1++;
+      valpos += nr_channels;
     }
   }
 }
 
 /* ************************************************************************* */
-void AKAZE::Get_MLDB_Full_Descriptor(const cv::KeyPoint& kpt, unsigned char *desc) const {
+void AKAZE::MLDB_Binary_Comparisons(float* values, unsigned char* desc,
+                                    int count, int& dpos) const {
 
-  float di = 0.0, dx = 0.0, dy = 0.0, ratio = 0.0;
-  float ri = 0.0, rx = 0.0, ry = 0.0, rrx = 0.0, rry = 0.0, xf = 0.0, yf = 0.0;
-  float sample_x = 0.0, sample_y = 0.0, co = 0.0, si = 0.0, angle = 0.0;
-  int x1 = 0, y1 = 0, sample_step = 0, pattern_size = 0;
-  int level = 0, nsamples = 0, scale = 0;
-  int dcount1 = 0, dcount2 = 0;
+  int nr_channels = options_.descriptor_channels;
+  int* ivalues = (int*) values;
+  for(int i = 0; i < count * nr_channels; i++)
+    ivalues[i] = CV_TOGGLE_FLT(ivalues[i]);
 
-  // Matrices for the M-LDB descriptor
-  cv::Mat values_1 = cv::Mat::zeros(4, options_.descriptor_channels, CV_32FC1);
-  cv::Mat values_2 = cv::Mat::zeros(9, options_.descriptor_channels, CV_32FC1);
-  cv::Mat values_3 = cv::Mat::zeros(16, options_.descriptor_channels, CV_32FC1);
-
-  // Get the information from the keypoint
-  ratio = (float)(1<<kpt.octave);
-  scale = fRound(0.5*kpt.size/ratio);
-  angle = kpt.angle;
-  level = kpt.class_id;
-  yf = kpt.pt.y/ratio;
-  xf = kpt.pt.x/ratio;
-  co = cos(angle);
-  si = sin(angle);
-
-  // First 2x2 grid
-  pattern_size = options_.descriptor_pattern_size;
-  sample_step = pattern_size;
-
-  for (int i = -pattern_size; i < pattern_size; i+=sample_step) {
-    for (int j = -pattern_size; j < pattern_size; j+=sample_step) {
-
-      di=dx=dy=0.0;
-      nsamples = 0;
-
-      for (float k = i; k < i + sample_step; k++) {
-        for (float l = j; l < j + sample_step; l++) {
-
-          // Get the coordinates of the sample point
-          sample_y = yf + (l*scale*co + k*scale*si);
-          sample_x = xf + (-l*scale*si + k*scale*co);
-
-          y1 = fRound(sample_y);
-          x1 = fRound(sample_x);
-
-          ri = *(evolution_[level].Lt.ptr<float>(y1)+x1);
-          rx = *(evolution_[level].Lx.ptr<float>(y1)+x1);
-          ry = *(evolution_[level].Ly.ptr<float>(y1)+x1);
-
-          di += ri;
-
-          if (options_.descriptor_channels == 2) {
-            dx += sqrtf(rx*rx + ry*ry);
-          }
-          else if (options_.descriptor_channels == 3) {
-            // Get the x and y derivatives on the rotated axis
-            rry = rx*co + ry*si;
-            rrx = -rx*si + ry*co;
-            dx += rrx;
-            dy += rry;
-          }
-
-          nsamples++;
-        }
-      }
-
-      di /= nsamples;
-      dx /= nsamples;
-      dy /= nsamples;
-
-      *(values_1.ptr<float>(dcount2)) = di;
-      if (options_.descriptor_channels > 1 ) {
-        *(values_1.ptr<float>(dcount2)+1) = dx;
-      }
-
-      if (options_.descriptor_channels > 2 ) {
-        *(values_1.ptr<float>(dcount2)+2) = dy;
-      }
-
-      dcount2++;
-    }
-  }
-
-  // Do binary comparison first level
-  for (int i = 0; i < 4; i++) {
-    for (int j = i+1; j < 4; j++) {
-      if (*(values_1.ptr<float>(i)) > *(values_1.ptr<float>(j))) {
-        desc[dcount1/8] |= (1<<(dcount1%8));
-      }
-      dcount1++;
-    }
-  }
-
-  if (options_.descriptor_channels > 1) {
-    for (int i = 0; i < 4; i++) {
-      for (int j = i+1; j < 4; j++) {
-        if (*(values_1.ptr<float>(i)+1) > *(values_1.ptr<float>(j)+1)) {
-          desc[dcount1/8] |= (1<<(dcount1%8));
-        }
-
-        dcount1++;
-      }
-    }
-  }
-
-  if (options_.descriptor_channels > 2) {
-    for (int i = 0; i < 4; i++) {
-      for ( int j = i+1; j < 4; j++) {
-        if (*(values_1.ptr<float>(i)+2) > *(values_1.ptr<float>(j)+2)) {
-          desc[dcount1/8] |= (1<<(dcount1%8));
-        }
-        dcount1++;
-      }
-    }
-  }
-
-  // Second 3x3 grid
-  sample_step = ceil(pattern_size*2./3.);
-  dcount2 = 0;
-
-  for (int i = -pattern_size; i < pattern_size; i+=sample_step) {
-    for (int j = -pattern_size; j < pattern_size; j+=sample_step) {
-
-      di=dx=dy=0.0;
-      nsamples = 0;
-
-      for (int k = i; k < i + sample_step; k++) {
-        for (int l = j; l < j + sample_step; l++) {
-
-          // Get the coordinates of the sample point
-          sample_y = yf + (l*scale*co + k*scale*si);
-          sample_x = xf + (-l*scale*si + k*scale*co);
-
-          y1 = fRound(sample_y);
-          x1 = fRound(sample_x);
-
-          ri = *(evolution_[level].Lt.ptr<float>(y1)+x1);
-          rx = *(evolution_[level].Lx.ptr<float>(y1)+x1);
-          ry = *(evolution_[level].Ly.ptr<float>(y1)+x1);
-          di += ri;
-
-          if (options_.descriptor_channels == 2) {
-            dx += sqrtf(rx*rx + ry*ry);
-          }
-          else if (options_.descriptor_channels == 3) {
-            // Get the x and y derivatives on the rotated axis
-            rry = rx*co + ry*si;
-            rrx = -rx*si + ry*co;
-            dx += rrx;
-            dy += rry;
-          }
-
-          nsamples++;
-        }
-      }
-
-      di /= nsamples;
-      dx /= nsamples;
-      dy /= nsamples;
-
-      *(values_2.ptr<float>(dcount2)) = di;
-      if (options_.descriptor_channels > 1) {
-        *(values_2.ptr<float>(dcount2)+1) = dx;
-      }
-
-      if (options_.descriptor_channels > 2) {
-        *(values_2.ptr<float>(dcount2)+2) = dy;
-      }
-
-      dcount2++;
-    }
-  }
-
-  // Do binary comparison second level
-  for (int i = 0; i < 9; i++) {
-    for (int j = i+1; j < 9; j++) {
-      if (*(values_2.ptr<float>(i)) > *(values_2.ptr<float>(j))) {
-        desc[dcount1/8] |= (1<<(dcount1%8));
-      }
-      dcount1++;
-    }
-  }
-
-  if (options_.descriptor_channels > 1) {
-    for (int i = 0; i < 9; i++) {
-      for (int j = i+1; j < 9; j++) {
-        if (*(values_2.ptr<float>(i)+1) > *(values_2.ptr<float>(j)+1)) {
-          desc[dcount1/8] |= (1<<(dcount1%8));
-        }
-        dcount1++;
-      }
-    }
-  }
-
-  if (options_.descriptor_channels > 2) {
-    for (int i = 0; i < 9; i++) {
-      for (int j = i+1; j < 9; j++) {
-        if (*(values_2.ptr<float>(i)+2) > *(values_2.ptr<float>(j)+2)) {
-          desc[dcount1/8] |= (1<<(dcount1%8));
-        }
-        dcount1++;
-      }
-    }
-  }
-
-  // Third 4x4 grid
-  sample_step = pattern_size/2;
-  dcount2 = 0;
-
-  for (int i = -pattern_size; i < pattern_size; i+=sample_step) {
-    for (int j = -pattern_size; j < pattern_size; j+=sample_step) {
-      di=dx=dy=0.0;
-      nsamples = 0;
-
-      for (int k = i; k < i + sample_step; k++) {
-        for (int l = j; l < j + sample_step; l++) {
-
-          // Get the coordinates of the sample point
-          sample_y = yf + (l*scale*co + k*scale*si);
-          sample_x = xf + (-l*scale*si + k*scale*co);
-
-          y1 = fRound(sample_y);
-          x1 = fRound(sample_x);
-
-          ri = *(evolution_[level].Lt.ptr<float>(y1)+x1);
-          rx = *(evolution_[level].Lx.ptr<float>(y1)+x1);
-          ry = *(evolution_[level].Ly.ptr<float>(y1)+x1);
-          di += ri;
-
-          if (options_.descriptor_channels == 2) {
-            dx += sqrtf(rx*rx + ry*ry);
-          }
-          else if (options_.descriptor_channels == 3) {
-            // Get the x and y derivatives on the rotated axis
-            rry = rx*co + ry*si;
-            rrx = -rx*si + ry*co;
-            dx += rrx;
-            dy += rry;
-          }
-
-          nsamples++;
-        }
-      }
-
-      di /= nsamples;
-      dx /= nsamples;
-      dy /= nsamples;
-
-      *(values_3.ptr<float>(dcount2)) = di;
-      if (options_.descriptor_channels > 1)
-        *(values_3.ptr<float>(dcount2)+1) = dx;
-
-      if (options_.descriptor_channels > 2)
-        *(values_3.ptr<float>(dcount2)+2) = dy;
-
-      dcount2++;
-    }
-  }
-
-  // Do binary comparison third level
-  for(int i = 0; i < 16; i++) {
-    for(int j = i+1; j < 16; j++) {
-      if (*(values_3.ptr<float>(i)) > *(values_3.ptr<float>(j))) {
-        desc[dcount1/8] |= (1<<(dcount1%8));
-      }
-      dcount1++;
-    }
-  }
-
-  if (options_.descriptor_channels > 1) {
-    for (int i = 0; i < 16; i++) {
-      for (int j = i+1; j < 16; j++) {
-        if (*(values_3.ptr<float>(i)+1) > *(values_3.ptr<float>(j)+1)) {
-          desc[dcount1/8] |= (1<<(dcount1%8));
-        }
-        dcount1++;
-      }
-    }
-  }
-
-  if (options_.descriptor_channels > 2) {
-    for (int i = 0; i < 16; i++) {
-      for (int j = i+1; j < 16; j++) {
-        if (*(values_3.ptr<float>(i)+2) > *(values_3.ptr<float>(j)+2)) {
-          desc[dcount1/8] |= (1<<(dcount1%8));
-        }
-        dcount1++;
+  for(int pos = 0; pos < nr_channels; pos++) {
+    for (int i = 0; i < count; i++) {
+      int ival = ivalues[nr_channels * i + pos];
+      for (int j = i + 1; j < count; j++) {
+        int res = ival > ivalues[nr_channels * j + pos];
+        desc[dpos >> 3] |= (res << (dpos & 7));
+        dpos++;
       }
     }
   }
 }
 
 /* ************************************************************************* */
-void AKAZE::Get_MLDB_Descriptor_Subset(const cv::KeyPoint& kpt, unsigned char *desc) {
+void AKAZE::Get_MLDB_Descriptor_Subset(const cv::KeyPoint& kpt, unsigned char* desc) {
 
   float di = 0.f, dx = 0.f, dy = 0.f;
   float rx = 0.f, ry = 0.f;
@@ -1649,7 +1339,6 @@ void AKAZE::Get_Upright_MLDB_Descriptor_Subset(const cv::KeyPoint& kpt, unsigned
   // Do the comparisons
   const float *vals = values.ptr<float>(0);
   const int *comps = descriptorBits_.ptr<int>(0);
-
   for (int i=0; i<descriptorBits_.rows; i++) {
     if (vals[comps[2*i]] > vals[comps[2*i +1]]) {
       desc[i/8] |= (1<<(i%8));
@@ -1805,24 +1494,6 @@ void libAKAZE::generateDescriptorSubsample(cv::Mat& sampleList, cv::Mat& compari
   sampleList = samples.rowRange(0,count).clone();
   comparisons = comps.rowRange(0,nbits).clone();
 }
-
-/* ************************************************************************* */
-/*float libAKAZE::get_angle(float x, float y) {
-
-  if (x >= 0 && y >= 0)
-    return atanf(y/x);
-
-  if (x < 0 && y >= 0)
-    return CV_PI - atanf(-y/x);
-
-  if (x < 0 && y < 0)
-    return CV_PI + atanf(y/x);
-
-  if(x >= 0 && y < 0)
-    return 2.0*CV_PI - atanf(-y/x);
-
-  return 0;
-}*/
 
 /* ************************************************************************* */
 void libAKAZE::check_descriptor_limits(int &x, int &y, int width, int height) {

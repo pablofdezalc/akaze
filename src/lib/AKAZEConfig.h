@@ -10,7 +10,6 @@
 /* ************************************************************************* */
 // OpenCV
 #include <opencv2/opencv.hpp>
-#include <opencv2/features2d/features2d.hpp>
 
 // OpenMP
 #ifdef _OPENMP

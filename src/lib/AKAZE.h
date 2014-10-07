@@ -14,6 +14,9 @@
 #include "utils.h"
 #include "nldiffusion_functions.h"
 
+// OpenCV
+#include <opencv2/features2d/features2d.hpp>
+
 /* ************************************************************************* */
 namespace libAKAZE {
 
@@ -138,6 +141,16 @@ namespace libAKAZE {
     /// @param kpt Input keypoint
     /// @param desc Binary-based descriptor
     void Get_MLDB_Descriptor_Subset(const cv::KeyPoint& kpt, unsigned char* desc);
+
+    /// Fill the comparison values for the MLDB rotation invariant descriptor
+    void MLDB_Fill_Values(float* values, int sample_step, int level,
+                          float xf, float yf, float co, float si, float scale) const;
+
+    /// Fill the comparison values for the MLDB upright descriptor
+    void MLDB_Fill_Upright_Values(float* values, int sample_step, int level,
+                                  float xf, float yf, float scale) const;
+
+    void MLDB_Binary_Comparisons(float* values, unsigned char* desc, int count, int& dpos) const;
 
     /// This method saves the scale space into jpg images
     void Save_Scale_Space();
