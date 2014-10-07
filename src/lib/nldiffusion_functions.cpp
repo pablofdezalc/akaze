@@ -2,12 +2,12 @@
 //
 // nldiffusion_functions.cpp
 // Authors: Pablo F. Alcantarilla (1), Jesus Nuevo (2)
-// Institutions: Georgia Institute of Technology (1)
+// Institutions: Toshiba Research Europe Ltd (1)
 //               TrueVision Solutions (2)
-// Date: 15/09/2013
+// Date: 07/10/2014
 // Email: pablofdezalc@gmail.com
 //
-// AKAZE Features Copyright 2013, Pablo F. Alcantarilla, Jesus Nuevo
+// AKAZE Features Copyright 2014, Pablo F. Alcantarilla, Jesus Nuevo
 // All Rights Reserved
 // See LICENSE for the license information
 //=============================================================================
@@ -15,170 +15,99 @@
 /**
  * @file nldiffusion_functions.cpp
  * @brief Functions for nonlinear diffusion filtering applications
- * @date Sep 15, 2013
+ * @date Oct 07, 2014
  * @author Pablo F. Alcantarilla, Jesus Nuevo
  */
 
 #include "nldiffusion_functions.h"
 
 using namespace std;
-using namespace cv;
 
 /* ************************************************************************* */
-/**
- * @brief This function smoothes an image with a Gaussian kernel
- * @param src Input image
- * @param dst Output image
- * @param ksize_x Kernel size in X-direction (horizontal)
- * @param ksize_y Kernel size in Y-direction (vertical)
- * @param sigma Kernel standard deviation
- */
-void gaussian_2D_convolution(const cv::Mat& src, cv::Mat& dst, const size_t& ksize_x,
-                             const size_t& ksize_y, const float& sigma) {
-
-  size_t ksize_x_ = 0, ksize_y_ = 0;
+void gaussian_2D_convolution(const cv::Mat& src, cv::Mat& dst, size_t ksize_x,
+                             size_t ksize_y, float sigma) {
 
   // Compute an appropriate kernel size according to the specified sigma
   if (sigma > ksize_x || sigma > ksize_y || ksize_x == 0 || ksize_y == 0) {
-    ksize_x_ = ceil(2.0*(1.0 + (sigma-0.8)/(0.3)));
-    ksize_y_ = ksize_x_;
+    ksize_x = ceil(2.0*(1.0 + (sigma-0.8)/(0.3)));
+    ksize_y = ksize_x;
   }
 
   // The kernel size must be and odd number
-  if ((ksize_x_ % 2) == 0) {
-    ksize_x_ += 1;
-  }
+  if ((ksize_x % 2) == 0)
+    ksize_x += 1;
 
-  if ((ksize_y_ % 2) == 0) {
-    ksize_y_ += 1;
-  }
+  if ((ksize_y % 2) == 0)
+    ksize_y += 1;
 
   // Perform the Gaussian Smoothing with border replication
-  GaussianBlur(src,dst,Size(ksize_x_,ksize_y_),sigma,sigma,BORDER_REPLICATE);
+  cv::GaussianBlur(src, dst, cv::Size(ksize_x, ksize_y), sigma, sigma, cv::BORDER_REPLICATE);
 }
 
 /* ************************************************************************* */
-/**
- * @brief This function computes image derivatives with Scharr kernel
- * @param src Input image
- * @param dst Output image
- * @param xorder Derivative order in X-direction (horizontal)
- * @param yorder Derivative order in Y-direction (vertical)
- * @note Scharr operator approximates better rotation invariance than
- * other stencils such as Sobel. See Weickert and Scharr,
- * A Scheme for Coherence-Enhancing Diffusion Filtering with Optimized Rotation Invariance,
- * Journal of Visual Communication and Image Representation 2002
- */
 void image_derivatives_scharr(const cv::Mat& src, cv::Mat& dst,
-                              const size_t& xorder, const size_t& yorder) {
-  Scharr(src,dst,CV_32F,xorder,yorder,1.0,0,BORDER_DEFAULT);
+                              const size_t xorder, const size_t yorder) {
+  cv::Scharr(src, dst, CV_32F, xorder, yorder, 1.0, 0, cv::BORDER_DEFAULT);
 }
 
 /* ************************************************************************* */
-/**
- * @brief This function computes the Perona and Malik conductivity coefficient g1
- * g1 = exp(-|dL|^2/k^2)
- * @param Lx First order image derivative in X-direction (horizontal)
- * @param Ly First order image derivative in Y-direction (vertical)
- * @param dst Output image
- * @param k Contrast factor parameter
- */
-void pm_g1(const cv::Mat& Lx, const cv::Mat& Ly, cv::Mat& dst, const float& k) {
+void pm_g1(const cv::Mat& Lx, const cv::Mat& Ly, cv::Mat& dst, const float k) {
 
-  Size sz = Lx.size();
+  cv::Size sz = Lx.size();
   float inv_k = 1.0 / (k*k);
   for (int y = 0; y < sz.height; y++) {
-
     const float* Lx_row = Lx.ptr<float>(y);
     const float* Ly_row = Ly.ptr<float>(y);
     float* dst_row = dst.ptr<float>(y);
-
-    for (int x = 0; x < sz.width; x++) {
+    for (int x = 0; x < sz.width; x++)
       dst_row[x] = (-inv_k*(Lx_row[x]*Lx_row[x] + Ly_row[x]*Ly_row[x]));
-    }
   }
 
-  exp(dst, dst);
+  cv::exp(dst, dst);
 }
 
 /* ************************************************************************* */
-/**
- * @brief This function computes the Perona and Malik conductivity coefficient g2
- * g2 = 1 / (1 + dL^2 / k^2)
- * @param Lx First order image derivative in X-direction (horizontal)
- * @param Ly First order image derivative in Y-direction (vertical)
- * @param dst Output image
- * @param k Contrast factor parameter
- */
-void pm_g2(const cv::Mat& Lx, const cv::Mat& Ly, cv::Mat& dst, const float& k) {
+void pm_g2(const cv::Mat& Lx, const cv::Mat& Ly, cv::Mat& dst, const float k) {
 
-  Size sz = Lx.size();
+  cv::Size sz = Lx.size();
   float inv_k = 1.0 / (k*k);
   for (int y = 0; y < sz.height; y++) {
-
     const float* Lx_row = Lx.ptr<float>(y);
     const float* Ly_row = Ly.ptr<float>(y);
     float* dst_row = dst.ptr<float>(y);
-
-    for (int x = 0; x < sz.width; x++) {
+    for (int x = 0; x < sz.width; x++)
       dst_row[x] = 1.0 / (1.0+inv_k*(Lx_row[x]*Lx_row[x] + Ly_row[x]*Ly_row[x]));
-    }
   }
 }
 
 /* ************************************************************************* */
-/**
- * @brief This function computes Weickert conductivity coefficient gw
- * @param Lx First order image derivative in X-direction (horizontal)
- * @param Ly First order image derivative in Y-direction (vertical)
- * @param dst Output image
- * @param k Contrast factor parameter
- * @note For more information check the following paper: J. Weickert
- * Applications of nonlinear diffusion in image processing and computer vision,
- * Proceedings of Algorithmy 2000
- */
-void weickert_diffusivity(const cv::Mat& Lx, const cv::Mat& Ly, cv::Mat& dst, const float& k) {
+void weickert_diffusivity(const cv::Mat& Lx, const cv::Mat& Ly, cv::Mat& dst, const float k) {
 
-  Size sz = Lx.size();
+  cv::Size sz = Lx.size();
   float inv_k = 1.0 / (k*k);
   for (int y = 0; y < sz.height; y++) {
-
     const float* Lx_row = Lx.ptr<float>(y);
     const float* Ly_row = Ly.ptr<float>(y);
     float* dst_row = dst.ptr<float>(y);
-
     for (int x = 0; x < sz.width; x++) {
       float dL = inv_k*(Lx_row[x]*Lx_row[x] + Ly_row[x]*Ly_row[x]);
       dst_row[x] = -3.315/(dL*dL*dL*dL);
     }
   }
 
-  exp(dst, dst);
+  cv::exp(dst, dst);
   dst = 1.0 - dst;
 }
 
 /* ************************************************************************* */
-/**
- * @brief This function computes Charbonnier conductivity coefficient gc
- * gc = 1 / sqrt(1 + dL^2 / k^2)
- * @param Lx First order image derivative in X-direction (horizontal)
- * @param Ly First order image derivative in Y-direction (vertical)
- * @param dst Output image
- * @param k Contrast factor parameter
- * @note For more information check the following paper: J. Weickert
- * Applications of nonlinear diffusion in image processing and computer vision,
- * Proceedings of Algorithmy 2000
- */
-void charbonnier_diffusivity(const cv::Mat& Lx, const cv::Mat& Ly, cv::Mat& dst, const float& k) {
+void charbonnier_diffusivity(const cv::Mat& Lx, const cv::Mat& Ly, cv::Mat& dst, const float k) {
 
-  Size sz = Lx.size();
+  cv::Size sz = Lx.size();
   float inv_k = 1.0 / (k*k);
   for (int y = 0; y < sz.height; y++) {
-
     const float* Lx_row = Lx.ptr<float>(y);
     const float* Ly_row = Ly.ptr<float>(y);
     float* dst_row = dst.ptr<float>(y);
-
     for (int x = 0; x < sz.width; x++) {
       float den = sqrt(1.0+inv_k*(Lx_row[x]*Lx_row[x] + Ly_row[x]*Ly_row[x]));
       dst_row[x] = 1.0 / den;
@@ -187,18 +116,6 @@ void charbonnier_diffusivity(const cv::Mat& Lx, const cv::Mat& Ly, cv::Mat& dst,
 }
 
 /* ************************************************************************* */
-/**
- * @brief This function computes a good empirical value for the k contrast factor
- * given an input image, the percentile (0-1), the gradient scale and the number of
- * bins in the histogram
- * @param img Input image
- * @param perc Percentile of the image gradient histogram (0-1)
- * @param gscale Scale for computing the image gradient histogram
- * @param nbins Number of histogram bins
- * @param ksize_x Kernel size in X-direction (horizontal) for the Gaussian smoothing kernel
- * @param ksize_y Kernel size in Y-direction (vertical) for the Gaussian smoothing kernel
- * @return k contrast factor
- */
 float compute_k_percentile(const cv::Mat& img, float perc, float gscale,
                            size_t nbins, size_t ksize_x, size_t ksize_y) {
 
@@ -235,9 +152,8 @@ float compute_k_percentile(const cv::Mat& img, float perc, float gscale,
       modg = sqrt(Lx_row[x]*Lx_row[x] + Ly_row[x]*Ly_row[x]);
 
       // Get the maximum
-      if (modg > hmax) {
+      if (modg > hmax)
         hmax = modg;
-      }
     }
   }
 
@@ -268,50 +184,29 @@ float compute_k_percentile(const cv::Mat& img, float perc, float gscale,
   // Now find the perc of the histogram percentile
   nthreshold = (size_t)(npoints*perc);
 
-  for (k = 0; nelements < nthreshold && k < nbins; k++) {
+  for (k = 0; nelements < nthreshold && k < nbins; k++)
     nelements = nelements + hist[k];
-  }
 
-  if (nelements < nthreshold) {
+  if (nelements < nthreshold)
     kperc = 0.03;
-  }
-  else {
+  else
     kperc = hmax*((float)(k)/(float)nbins);
-  }
 
   delete [] hist;
   return kperc;
 }
 
 /* ************************************************************************* */
-/**
- * @brief This function computes Scharr image derivatives
- * @param src Input image
- * @param dst Output image
- * @param xorder Derivative order in X-direction (horizontal)
- * @param yorder Derivative order in Y-direction (vertical)
- * @param scale Scale factor for the derivative size
- */
-void compute_scharr_derivatives(const cv::Mat& src, cv::Mat& dst, const size_t& xorder,
-                                const size_t& yorder, const size_t& scale) {
+void compute_scharr_derivatives(const cv::Mat& src, cv::Mat& dst, const size_t xorder,
+                                const size_t yorder, const size_t scale) {
 
-  Mat kx, ky;
-  compute_derivative_kernels(kx, ky, xorder,yorder,scale);
-  sepFilter2D(src,dst,CV_32F,kx,ky);
+  cv::Mat kx, ky;
+  compute_derivative_kernels(kx, ky, xorder, yorder, scale);
+  cv::sepFilter2D(src, dst, CV_32F, kx, ky);
 }
 
 /* ************************************************************************* */
-/**
- * @brief This function performs a scalar non-linear diffusion step
- * @param Ld2 Output image in the evolution
- * @param c Conductivity image
- * @param Lstep Previous image in the evolution
- * @param stepsize The step size in time units
- * @note Forward Euler Scheme 3x3 stencil
- * The function c is a scalar value that depends on the gradient norm
- * dL_by_ds = d(c dL_by_dx)_by_dx + d(c dL_by_dy)_by_dy
- */
-void nld_step_scalar(cv::Mat& Ld, const cv::Mat& c, cv::Mat& Lstep, const float& stepsize) {
+void nld_step_scalar(cv::Mat& Ld, const cv::Mat& c, cv::Mat& Lstep, const float stepsize) {
 
 #ifdef _OPENMP
 #pragma omp parallel for schedule(dynamic)
@@ -363,8 +258,6 @@ void nld_step_scalar(cv::Mat& Ld, const cv::Mat& c, cv::Mat& Lstep, const float&
     Lstep_row[x] = 0.5*stepsize*(xpos-xneg + ypos);
   }
 
-
-
   for (int i = 1; i < Lstep.rows-1; i++) {
 
     const float* c_row = c.ptr<float>(i);
@@ -397,55 +290,41 @@ void nld_step_scalar(cv::Mat& Ld, const cv::Mat& c, cv::Mat& Lstep, const float&
 }
 
 /* ************************************************************************* */
-/**
- * @brief This function downsamples the input image using OpenCV resize
- * @param img Input image to be downsampled
- * @param dst Output image with half of the resolution of the input image
- */
 void halfsample_image(const cv::Mat& src, cv::Mat& dst) {
 
   // Make sure the destination image is of the right size
   assert(src.cols/2==dst.cols);
   assert(src.rows/2==dst.rows);
-  resize(src,dst,dst.size(),0,0,cv::INTER_AREA);
+  cv::resize(src, dst, dst.size(), 0, 0, cv::INTER_AREA);
 }
 
 /* ************************************************************************* */
-/**
- * @brief Compute Scharr derivative kernels for sizes different than 3
- * @param kx_ The derivative kernel in x-direction
- * @param ky_ The derivative kernel in y-direction
- * @param dx The derivative order in x-direction
- * @param dy The derivative order in y-direction
- * @param scale The kernel size
- */
 void compute_derivative_kernels(cv::OutputArray kx_, cv::OutputArray ky_,
-                                const size_t& dx, const size_t& dy, const size_t& scale) {
+                                const size_t dx, const size_t dy, const size_t scale) {
 
   const int ksize = 3 + 2*(scale-1);
 
   // The usual Scharr kernel
   if (scale == 1) {
-    getDerivKernels(kx_,ky_,dx,dy,0,true,CV_32F);
+    cv::getDerivKernels(kx_, ky_, dx, dy, 0, true, CV_32F);
     return;
   }
 
   kx_.create(ksize,1,CV_32F,-1,true);
   ky_.create(ksize,1,CV_32F,-1,true);
-  Mat kx = kx_.getMat();
-  Mat ky = ky_.getMat();
+  cv::Mat kx = kx_.getMat();
+  cv::Mat ky = ky_.getMat();
 
   float w = 10.0/3.0;
   float norm = 1.0/(2.0*scale*(w+2.0));
 
   for (int k = 0; k < 2; k++) {
-    Mat* kernel = k == 0 ? &kx : &ky;
+    cv::Mat* kernel = k == 0 ? &kx : &ky;
     int order = k == 0 ? dx : dy;
     float kerI[1000];
 
-    for (int t = 0; t<ksize; t++) {
+    for (int t = 0; t<ksize; t++)
       kerI[t] = 0;
-    }
 
     if (order == 0) {
       kerI[0] = norm;
@@ -458,22 +337,12 @@ void compute_derivative_kernels(cv::OutputArray kx_, cv::OutputArray ky_,
       kerI[ksize-1] = 1;
     }
 
-    Mat temp(kernel->rows, kernel->cols, CV_32F, &kerI[0]);
+    cv::Mat temp(kernel->rows, kernel->cols, CV_32F, &kerI[0]);
     temp.copyTo(*kernel);
   }
 }
 
 /* ************************************************************************* */
-/**
- * @brief This function checks if a given pixel is a maximum in a local neighbourhood
- * @param img Input image where we will perform the maximum search
- * @param dsize Half size of the neighbourhood
- * @param value Response value at (x,y) position
- * @param row Image row coordinate
- * @param col Image column coordinate
- * @param same_img Flag to indicate if the image value at (x,y) is in the input image
- * @return 1->is maximum, 0->otherwise
- */
 bool check_maximum_neighbourhood(const cv::Mat& img, int dsize, float value,
                                  int row, int col, bool same_img) {
 
