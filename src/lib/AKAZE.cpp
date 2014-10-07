@@ -1,3 +1,17 @@
+//=============================================================================
+//
+// AKAZE.cpp
+// Authors: Pablo F. Alcantarilla (1), Jesus Nuevo (2)
+// Institutions: Toshiba Research Europe Ltd (1)
+//               TrueVision Solutions (2)
+// Date: 07/10/2014
+// Email: pablofdezalc@gmail.com
+//
+// AKAZE Features Copyright 2014, Pablo F. Alcantarilla, Jesus Nuevo
+// All Rights Reserved
+// See LICENSE for the license information
+//=============================================================================
+
 /**
  * @file AKAZE.cpp
  * @brief Main class for detecting and describing binary features in an

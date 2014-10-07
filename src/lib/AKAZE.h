@@ -150,6 +150,7 @@ namespace libAKAZE {
     void MLDB_Fill_Upright_Values(float* values, int sample_step, int level,
                                   float xf, float yf, float scale) const;
 
+    /// Do the binary comparisons to obtain the descriptor
     void MLDB_Binary_Comparisons(float* values, unsigned char* desc, int count, int& dpos) const;
 
     /// This method saves the scale space into jpg images
