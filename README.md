@@ -1,12 +1,18 @@
 ## README - A-KAZE Features
 
-Version: 1.3.0
-Date: 03-08-2014
+Version: 1.4.0
+Date: 07-10-2014
 
 You can get the latest version of the code from github:
 `https://github.com/pablofdezalc/akaze`
 
 ## CHANGELOG
+Version: 1.4.0
+Changes:
+- Namespace libAKAZE created to avoid conflict with AKAZE class in OpenCV 3.0
+- Speed-up in detection in description thanks to the improvements done in the Google Summer of Code 2014 program. Most of this improvements are thanks to Fedor Mozorov, Vadim Pisarevsky and Gary Bradsky
+- akaze_match and akaze_compare now automatically perform the image matching estimating a planar homography using RANSAC if the homography txt file is not provided as input argument
+
 Version: 1.3.0
 Changes:
 - More efficient memory usage
