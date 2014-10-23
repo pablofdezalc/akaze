@@ -2,12 +2,12 @@
 //
 // akaze_compare.cpp
 // Authors: Pablo F. Alcantarilla (1), Jesus Nuevo (2)
-// Institutions: Georgia Institute of Technology (1)
+// Institutions: Toshiba Research Europe Ltd (1)
 //               TrueVision Solutions (2)
-// Date: 15/09/2013
+// Date: 07/10/2014
 // Email: pablofdezalc@gmail.com
 //
-// AKAZE Features Copyright 2013, Pablo F. Alcantarilla, Jesus Nuevo
+// AKAZE Features Copyright 2014, Pablo F. Alcantarilla, Jesus Nuevo
 // All Rights Reserved
 // See LICENSE for the license information
 //=============================================================================
@@ -16,7 +16,7 @@
  * @file akaze_compare.cpp
  * @brief Main program for matching two images with A-KAZE features and compare
  * to BRISK and ORB
- * @date Sep 15, 2013
+ * @date Oct 07, 2014
  * @author Pablo F. Alcantarilla
  */
 
@@ -27,8 +27,8 @@ using namespace std;
 /* ************************************************************************* */
 // ORB settings
 const int ORB_MAX_KPTS = 1500;
-const float ORB_SCALE_FACTOR = 1.5;
-const int ORB_PYRAMID_LEVELS = 3;
+const float ORB_SCALE_FACTOR = 1.2;
+const int ORB_PYRAMID_LEVELS = 4;
 const float ORB_EDGE_THRESHOLD = 31.0;
 const int ORB_FIRST_PYRAMID_LEVEL = 0;
 const int ORB_WTA_K = 2;
@@ -36,7 +36,7 @@ const int ORB_PATCH_SIZE = 31;
 
 // BRISK settings
 const float BRISK_HTHRES = 10.0;
-const int BRISK_NOCTAVES = 3;
+const int BRISK_NOCTAVES = 4;
 
 // Some image matching options
 const float MIN_H_ERROR = 2.50f;	      // Maximum error in pixels to accept an inlier

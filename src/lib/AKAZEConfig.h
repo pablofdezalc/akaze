@@ -1,7 +1,7 @@
 /**
  * @file AKAZEConfig.h
  * @brief AKAZE configuration file
- * @date Feb 23, 2014
+ * @date Oct 07, 2014
  * @author Pablo F. Alcantarilla, Jesus Nuevo
  */
 
@@ -87,7 +87,7 @@ struct AKAZEOptions {
     derivative_factor = 1.5f;
     omax = 4;
     nsublevels = 4;
-    dthreshold = 0.0008f;
+    dthreshold = 0.001f;
     min_dthreshold = 0.00001f;
 
     diffusivity = PM_G2;

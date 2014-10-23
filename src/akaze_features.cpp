@@ -2,12 +2,12 @@
 //
 // akaze_features.cpp
 // Authors: Pablo F. Alcantarilla (1), Jesus Nuevo (2)
-// Institutions: Georgia Institute of Technology (1)
+// Institutions: Toshiba Research Europe Ltd (1)
 //               TrueVision Solutions (2)
-// Date: 16/09/2013
+// Date: 07/10/2014
 // Email: pablofdezalc@gmail.com
 //
-// AKAZE Features Copyright 2013, Pablo F. Alcantarilla, Jesus Nuevo
+// AKAZE Features Copyright 2014, Pablo F. Alcantarilla, Jesus Nuevo
 // All Rights Reserved
 // See LICENSE for the license information
 //=============================================================================
@@ -16,7 +16,7 @@
  * @file akaze_features.cpp
  * @brief Main program for detecting and computing binary descriptors in an
  * accelerated nonlinear scale space
- * @date Sep 16, 2013
+ * @date Oct 07, 2014
  * @author Pablo F. Alcantarilla, Jesus Nuevo
  */
 

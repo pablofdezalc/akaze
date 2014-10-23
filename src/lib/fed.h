@@ -2,7 +2,7 @@
  * @file fed.h
  * @brief Functions for performing Fast Explicit Diffusion and building the
  * nonlinear scale space
- * @date Sep 15, 2013
+ * @date Oct 07, 2014
  * @author Pablo F. Alcantarilla, Jesus Nuevo
  * @note This code is derived from FED/FJ library from Grewenig et al.,
  * The FED/FJ library allows solving more advanced problems

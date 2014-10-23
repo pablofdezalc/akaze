@@ -16,7 +16,7 @@
  * @file AKAZE.cpp
  * @brief Main class for detecting and describing binary features in an
  * accelerated nonlinear scale space
- * @date Sep 15, 2013
+ * @date Oct 07, 2014
  * @author Pablo F. Alcantarilla, Jesus Nuevo
  */
 
@@ -1416,7 +1416,7 @@ void libAKAZE::generateDescriptorSubsample(cv::Mat& sampleList, cv::Mat& compari
   }
   ssz *= nchannels;
 
-  assert(nbits<=ssz && "descriptor size can't be bigger than full descriptor");
+  CV_Assert(nbits<=ssz && "descriptor size can't be bigger than full descriptor");
 
   // Since the full descriptor is usually under 10k elements, we pick
   // the selection from the full matrix.  We take as many samples per

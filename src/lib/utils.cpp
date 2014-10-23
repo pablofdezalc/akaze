@@ -2,13 +2,13 @@
 //
 // utils.cpp
 // Authors: Pablo F. Alcantarilla (1), Jesus Nuevo (2)
-// Institutions: Georgia Institute of Technology (1)
+// Institutions: Toshiba Research Europe Ltd (1)
 //               TrueVision Solutions (2)
 //
-// Date: 15/09/2013
+// Date: 07/10/2014
 // Email: pablofdezalc@gmail.com
 //
-// AKAZE Features Copyright 2013, Pablo F. Alcantarilla, Jesus Nuevo
+// AKAZE Features Copyright 2014, Pablo F. Alcantarilla, Jesus Nuevo
 // All Rights Reserved
 // See LICENSE for the license information
 //=============================================================================
@@ -16,7 +16,7 @@
 /**
  * @file utils.cpp
  * @brief Some utilities functions
- * @date Sep 15, 2013
+ * @date Oct 07, 2014
  * @author Pablo F. Alcantarilla, Jesus Nuevo
  */
 
@@ -31,91 +31,53 @@
 using namespace std;
 
 /* ************************************************************************* */
-/**
- * @brief This function computes the minimum value of a float image
- * @param src Input image
- * @param value Minimum value
- */
-void compute_min_32F(const cv::Mat &src, float &value) {
+void compute_min_32F(const cv::Mat &src, float& value) {
 
   float aux = 1000.0;
-
   for (int i = 0; i < src.rows; i++) {
     for (int j = 0; j < src.cols; j++) {
-      if (src.at<float>(i,j) < aux) {
+      if (src.at<float>(i,j) < aux)
         aux = src.at<float>(i,j);
-      }
     }
   }
-
   value = aux;
 }
 
 /* ************************************************************************* */
-/**
- * @brief This function computes the maximum value of a float image
- * @param src Input image
- * @param value Maximum value
- */
-void compute_max_32F(const cv::Mat &src, float &value) {
+void compute_max_32F(const cv::Mat &src, float& value) {
 
   float aux = 0.0;
-
   for (int i = 0; i < src.rows; i++) {
     for (int j = 0; j < src.cols; j++) {
-      if (src.at<float>(i,j) > aux) {
+      if (src.at<float>(i,j) > aux)
         aux = src.at<float>(i,j);
-      }
     }
   }
-
   value = aux;
 }
 
 /* ************************************************************************* */
-/**
- * @brief This function converts the scale of the input image prior to visualization
- * @param src Input/Output image
- * @param value Maximum value
- */
-void convert_scale(cv::Mat &src) {
+void convert_scale(cv::Mat& src) {
 
   float min_val = 0, max_val = 0;
-
   compute_min_32F(src,min_val);
-
   src = src - min_val;
-
   compute_max_32F(src,max_val);
   src = src / max_val;
 }
 
 /* ************************************************************************* */
-/**
- * @brief This function copies the input image and converts the scale of the copied
- * image prior visualization
- * @param src Input image
- * @param dst Output image
- */
 void copy_and_convert_scale(const cv::Mat &src, cv::Mat dst) {
 
   float min_val = 0, max_val = 0;
-
   src.copyTo(dst);
   compute_min_32F(dst,min_val);
-
   dst = dst - min_val;
-
   compute_max_32F(dst,max_val);
   dst = dst / max_val;
 }
 
 /* ************************************************************************* */
-/**
- * @brief This function draws the list of detected keypoints
- * @param img Input image
- * @param kpts Vector of detected keypoints
- */
 void draw_keypoints(cv::Mat& img, const std::vector<cv::KeyPoint>& kpts) {
 
   int x = 0, y = 0;
@@ -131,14 +93,6 @@ void draw_keypoints(cv::Mat& img, const std::vector<cv::KeyPoint>& kpts) {
 }
 
 /* ************************************************************************* */
-/**
- * @brief  This function saves the interest points to a regular ASCII file
- * @note The format is compatible with Mikolajczyk and Schmid evaluation
- * @param outFile Name of the output file where the points will be stored
- * @param kpts Vector of points of interest
- * @param desc Matrix that contains the extracted descriptors
- * @param save_desc Set to 1 if we want to save the descriptors
- */
 int save_keypoints(const string& outFile, const std::vector<cv::KeyPoint>& kpts,
                    const cv::Mat& desc, bool save_desc) {
 
@@ -157,7 +111,8 @@ int save_keypoints(const string& outFile, const std::vector<cv::KeyPoint>& kpts,
 
   if (!save_desc) {
     ipfile << 1 << endl << nkpts << endl;
-  } else {
+  }
+  else {
     ipfile << dsize << endl << nkpts << endl;
   }
 
@@ -195,15 +150,6 @@ int save_keypoints(const string& outFile, const std::vector<cv::KeyPoint>& kpts,
 }
 
 /* ************************************************************************* */
-/**
- * @brief This function converts matches to points using nearest neighbor distance
- * ratio matching strategy
- * @param train Vector of keypoints from the first image
- * @param query Vector of keypoints from the second image
- * @param matches Vector of nearest neighbors for each keypoint
- * @param pmatches Vector of putative matches
- * @param nndr Nearest neighbor distance ratio value
- */
 void matches2points_nndr(const std::vector<cv::KeyPoint>& train,
                          const std::vector<cv::KeyPoint>& query,
                          const std::vector<std::vector<cv::DMatch> >& matches,
@@ -223,14 +169,6 @@ void matches2points_nndr(const std::vector<cv::KeyPoint>& train,
 }
 
 /* ************************************************************************* */
-/**
- * @brief This function computes the set of inliers estimating the fundamental matrix
- * or a planar homography in a RANSAC procedure
- * @param matches Vector of putative matches
- * @param inliers Vector of inliers
- * @param error The minimum pixelic error to accept an inlier
- * @param use_fund Set to true if you want to compute a fundamental matrix
- */
 void compute_inliers_ransac(const std::vector<cv::Point2f>& matches,
                             std::vector<cv::Point2f>& inliers,
                             float error, bool use_fund) {
@@ -246,7 +184,6 @@ void compute_inliers_ransac(const std::vector<cv::Point2f>& matches,
   }
 
   if (npoints > 8) {
-
     if (use_fund == true)
       H = cv::findFundamentalMat(points1,points2,cv::FM_RANSAC,error,0.99,status);
     else
@@ -262,13 +199,6 @@ void compute_inliers_ransac(const std::vector<cv::Point2f>& matches,
 }
 
 /* ************************************************************************* */
-/**
- * @brief This function computes the set of inliers given a ground truth homography
- * @param matches Vector of putative matches
- * @param inliers Vector of inliers
- * @param H Ground truth homography matrix 3x3
- * @param min_error The minimum pixelic error to accept an inlier
- */
 void compute_inliers_homography(const std::vector<cv::Point2f>& matches,
                                 std::vector<cv::Point2f>& inliers, const cv::Mat& H,
                                 float min_error) {
@@ -312,13 +242,6 @@ void compute_inliers_homography(const std::vector<cv::Point2f>& matches,
 }
 
 /* ************************************************************************* */
-/**
- * @brief This function draws the set of the inliers between the two images
- * @param img1 First image
- * @param img2 Second image
- * @param img_com Image with the inliers
- * @param ptpairs Vector of point pairs with the set of inliers
- */
 void draw_inliers(const cv::Mat& img1, const cv::Mat& img2, cv::Mat& img_com,
                   const std::vector<cv::Point2f>& ptpairs) {
 
@@ -363,14 +286,6 @@ void draw_inliers(const cv::Mat& img1, const cv::Mat& img2, cv::Mat& img_com,
 }
 
 /* ************************************************************************* */
-/**
- * @brief This function draws the set of the inliers between the two images
- * @param img1 First image
- * @param img2 Second image
- * @param img_com Image with the inliers
- * @param ptpairs Vector of point pairs with the set of inliers
- * @param color The color for each method
- */
 void draw_inliers(const cv::Mat& img1, const cv::Mat& img2, cv::Mat& img_com,
                   const std::vector<cv::Point2f>& ptpairs, int color) {
 
@@ -479,9 +394,6 @@ static inline std::string toUpper(std::string s) {
 }
 
 /* ************************************************************************* */
-/**
- * @brief This function shows the possible command line configuration options
- */
 void show_input_options_help(int example) {
 
   fflush(stdout);

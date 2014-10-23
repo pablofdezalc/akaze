@@ -293,8 +293,8 @@ void nld_step_scalar(cv::Mat& Ld, const cv::Mat& c, cv::Mat& Lstep, const float 
 void halfsample_image(const cv::Mat& src, cv::Mat& dst) {
 
   // Make sure the destination image is of the right size
-  assert(src.cols/2==dst.cols);
-  assert(src.rows/2==dst.rows);
+  CV_Assert(src.cols / 2 == dst.cols);
+  CV_Assert(src.rows / 2 == dst.rows);
   cv::resize(src, dst, dst.size(), 0, 0, cv::INTER_AREA);
 }
 

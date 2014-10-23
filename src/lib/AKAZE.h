@@ -2,7 +2,7 @@
  * @file AKAZE.h
  * @brief Main class for detecting and computing binary descriptors in an
  * accelerated nonlinear scale space
- * @date Mar 27, 2013
+ * @date Oct 07, 2014
  * @author Pablo F. Alcantarilla, Jesus Nuevo
  */
 
