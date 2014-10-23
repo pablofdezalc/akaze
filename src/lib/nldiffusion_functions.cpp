@@ -209,10 +209,10 @@ void compute_scharr_derivatives(const cv::Mat& src, cv::Mat& dst, const size_t x
 void nld_step_scalar(cv::Mat& Ld, const cv::Mat& c, cv::Mat& Lstep, const float stepsize) {
 
 #ifdef _OPENMP
+  omp_set_num_threads(OMP_MAX_THREADS);
 #pragma omp parallel for schedule(dynamic)
 #endif
   for (int y = 1; y < Lstep.rows-1; y++) {
-
     const float* c_row = c.ptr<float>(y);
     const float* c_row_p = c.ptr<float>(y+1);
     const float* c_row_m = c.ptr<float>(y-1);

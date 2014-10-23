@@ -13,7 +13,8 @@
 
 // OpenMP
 #ifdef _OPENMP
-# include <omp.h>
+#include <omp.h>
+#define OMP_MAX_THREADS 16
 #endif
 
 // System

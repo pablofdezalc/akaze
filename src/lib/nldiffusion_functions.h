@@ -8,13 +8,7 @@
 #pragma once
 
 /* ************************************************************************* */
-// OpenCV
-#include <opencv2/opencv.hpp>
-
-// OpenMP
-#ifdef _OPENMP
-# include <omp.h>
-#endif
+#include <AKAZEConfig.h>
 
 /* ************************************************************************* */
 /// Convolve an image with a 2D Gaussian kernel

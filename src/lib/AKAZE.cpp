@@ -195,8 +195,10 @@ void AKAZE::Compute_Multiscale_Derivatives() {
   t1 = cv::getTickCount();
 
 #ifdef _OPENMP
+omp_set_num_threads(OMP_MAX_THREADS);
 #pragma omp parallel for
 #endif
+
   for (int i = 0; i < (int)(evolution_.size()); i++) {
 
     float ratio = pow(2.f,(float)evolution_[i].octave);
