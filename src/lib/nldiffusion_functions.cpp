@@ -240,7 +240,7 @@ void nld_step_scalar(cv::Mat& Ld, const cv::Mat& c, cv::Mat& Lstep, const float 
 
   for (int x = 1; x < Lstep.cols-1; x++) {
     float xpos = (c_row[x]+c_row[x+1])*(Ld_row[x+1]-Ld_row[x]);
-    float xneg = (c_row[x-1]*c_row[x])*(Ld_row[x]-Ld_row[x-1]);
+    float xneg = (c_row[x-1]+c_row[x])*(Ld_row[x]-Ld_row[x-1]);
     float ypos = (c_row[x]+c_row_p[x])*(Ld_row_p[x]-Ld_row[x]);
     Lstep_row[x] = 0.5*stepsize*(xpos-xneg + ypos);
   }
