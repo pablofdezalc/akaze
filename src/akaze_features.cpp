@@ -22,6 +22,9 @@
 
 #include "AKAZE.h"
 
+// OpenCV
+#include <opencv2/imgproc/imgproc.hpp>
+
 using namespace std;
 
 /* ************************************************************************* */
@@ -45,9 +48,8 @@ int main(int argc, char *argv[]) {
   double t1 = 0.0, t2 = 0.0, tdet = 0.0, tdesc = 0.0;
 
   // Parse the input command line options
-  if (parse_input_options(options,img_path,kpts_path,argc,argv)) {
+  if (parse_input_options(options, img_path, kpts_path, argc, argv))
     return -1;
-  }
 
   if (options.verbosity) {
     cout << "Check AKAZE options:" << endl;
@@ -55,24 +57,25 @@ int main(int argc, char *argv[]) {
   }
 
   // Try to read the image and if necessary convert to grayscale.
-  cv::Mat img = cv::imread(img_path,0);
+  cv::Mat img = cv::imread(img_path.c_str(), 0);
   if (img.data == NULL) {
     cerr << "Error: cannot load image from file:" << endl << img_path << endl;
     return -1;
   }
 
-  // Convert the image to float to extract features.
+  // Convert the image to float to extract features
   cv::Mat img_32;
-  img.convertTo(img_32, CV_32F, 1.0/255.0,0);
+  img.convertTo(img_32, CV_32F, 1.0/255.0, 0);
 
-  // Don't forget to specify image dimensions in AKAZE's options.
+  // Don't forget to specify image dimensions in AKAZE's options
   options.img_width = img.cols;
   options.img_height = img.rows;
 
-  // Extract features.
-  vector<cv::KeyPoint> kpts;
-  t1 = cv::getTickCount();
+  // Extract features
   libAKAZE::AKAZE evolution(options);
+  vector<cv::KeyPoint> kpts;
+
+  t1 = cv::getTickCount();
   evolution.Create_Nonlinear_Scale_Space(img_32);
   evolution.Feature_Detection(kpts);
   t2 = cv::getTickCount();
@@ -81,26 +84,26 @@ int main(int argc, char *argv[]) {
   // Compute descriptors.
   cv::Mat desc;
   t1 = cv::getTickCount();
-  evolution.Compute_Descriptors(kpts,desc);
+  evolution.Compute_Descriptors(kpts, desc);
   t2 = cv::getTickCount();
   tdesc = 1000.0*(t2-t1) / cv::getTickFrequency();
 
   // Summarize the computation times.
   evolution.Show_Computation_Times();
-  evolution.Save_Scale_Space();
+
   cout << "Number of points: " << kpts.size() << endl;
   cout << "Time Detector: " << tdet << " ms" << endl;
   cout << "Time Descriptor: " << tdesc << " ms" << endl;
 
-  // Save keypoints in ASCII format.
+  // Save keypoints in ASCII format
   if (!kpts_path.empty())
-    save_keypoints(kpts_path,kpts,desc,true);
+    save_keypoints(kpts_path, kpts, desc, true);
 
-  // Check out the result visually.
+  // Check out the result visually
   cv::Mat img_rgb = cv::Mat(cv::Size(img.cols, img.rows), CV_8UC3);
-  cvtColor(img,img_rgb,CV_GRAY2BGR);
-  draw_keypoints(img_rgb,kpts);
-  cv::imshow(img_path,img_rgb);
+  cvtColor(img,img_rgb, cv::COLOR_GRAY2BGR);
+  draw_keypoints(img_rgb, kpts);
+  cv::imshow(img_path, img_rgb);
   cv::waitKey(0);
 }
 

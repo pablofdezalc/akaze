@@ -22,25 +22,29 @@
 
 #include "AKAZE.h"
 
+// OpenCV
+#include <opencv2/features2d/features2d.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+
 using namespace std;
 
 /* ************************************************************************* */
 // ORB settings
-const int ORB_MAX_KPTS = 1500;
-const float ORB_SCALE_FACTOR = 1.2;
-const int ORB_PYRAMID_LEVELS = 4;
-const float ORB_EDGE_THRESHOLD = 31.0;
-const int ORB_FIRST_PYRAMID_LEVEL = 0;
-const int ORB_WTA_K = 2;
-const int ORB_PATCH_SIZE = 31;
+int ORB_MAX_KPTS = 1500;
+float ORB_SCALE_FACTOR = 1.2;
+int ORB_PYRAMID_LEVELS = 4;
+float ORB_EDGE_THRESHOLD = 31.0;
+int ORB_FIRST_PYRAMID_LEVEL = 0;
+int ORB_WTA_K = 2;
+int ORB_PATCH_SIZE = 31;
 
 // BRISK settings
-const float BRISK_HTHRES = 10.0;
-const int BRISK_NOCTAVES = 4;
+int BRISK_HTHRES = 10;
+int BRISK_NOCTAVES = 4;
 
 // Some image matching options
-const float MIN_H_ERROR = 2.50f;	      // Maximum error in pixels to accept an inlier
-const float DRATIO = 0.80f;		          // NNDR Matching value
+float MIN_H_ERROR = 2.50f;	      // Maximum error in pixels to accept an inlier
+float DRATIO = 0.80f;		          // NNDR Matching value
 
 /* ************************************************************************* */
 /**
@@ -64,8 +68,7 @@ int main(int argc, char *argv[]) {
   double t1 = 0.0, t2 = 0.0;
 
   // ORB variables
-  cv::Ptr<cv::OrbFeatureDetector> orb_detector;
-  cv::Ptr<cv::DescriptorExtractor> orb_descriptor;
+  cv::Ptr<cv::ORB> orb;
   vector<cv::KeyPoint> kpts1_orb, kpts2_orb;
   vector<cv::Point2f> matches_orb, inliers_orb;
   vector<vector<cv::DMatch> > dmatches_orb;
@@ -76,7 +79,7 @@ int main(int argc, char *argv[]) {
   double torb = 0.0;
 
   // BRISK variables
-  cv::BRISK dbrisk(BRISK_HTHRES,BRISK_NOCTAVES);
+  cv::Ptr<cv::BRISK> brisk;
   vector<cv::KeyPoint> kpts1_brisk, kpts2_brisk;
   vector<cv::Point2f> matches_brisk, inliers_brisk;
   vector<vector<cv::DMatch> > dmatches_brisk;
@@ -96,14 +99,14 @@ int main(int argc, char *argv[]) {
   float ratio_akaze = 0.0;
   double takaze = 0.0;
 
+  // Create the L2 and L1 matchers
   cv::Ptr<cv::DescriptorMatcher> matcher_l2 = cv::DescriptorMatcher::create("BruteForce");
   cv::Ptr<cv::DescriptorMatcher> matcher_l1 = cv::DescriptorMatcher::create("BruteForce-Hamming");
   cv::Mat HG;
 
   // Parse the input command line options
-  if (parse_input_options(options,img_path1,img_path2,homography_path,argc,argv)) {
+  if (parse_input_options(options,img_path1,img_path2,homography_path,argc,argv))
     return -1;
-  }
 
   // Read the image, force to be grey scale
   img1 = cv::imread(img_path1,0);
@@ -147,30 +150,24 @@ int main(int argc, char *argv[]) {
 
   // ORB Features
   //*****************
-  orb_detector = new cv::OrbFeatureDetector(ORB_MAX_KPTS,ORB_SCALE_FACTOR,ORB_PYRAMID_LEVELS,
-                                            ORB_EDGE_THRESHOLD,ORB_FIRST_PYRAMID_LEVEL,ORB_WTA_K,ORB_PATCH_SIZE);
-  orb_descriptor = new cv::OrbDescriptorExtractor();
+  orb = cv::ORB::create(ORB_MAX_KPTS, ORB_SCALE_FACTOR, ORB_PYRAMID_LEVELS,
+                        ORB_EDGE_THRESHOLD, ORB_FIRST_PYRAMID_LEVEL, ORB_WTA_K, ORB_PATCH_SIZE);
 
   t1 = cv::getTickCount();
 
-  orb_detector->detect(img1,kpts1_orb);
-  orb_detector->detect(img2,kpts2_orb);
+  orb->detectAndCompute(img1, cv::noArray(), kpts1_orb, desc1_orb, false);
+  orb->detectAndCompute(img2, cv::noArray(), kpts2_orb, desc2_orb, false);
 
-  nkpts1_orb = kpts1_orb.size();
-  nkpts2_orb = kpts2_orb.size();
-
-  orb_descriptor->compute(img1,kpts1_orb,desc1_orb);
-  orb_descriptor->compute(img2,kpts2_orb,desc2_orb);
-
-  matcher_l1->knnMatch(desc1_orb,desc2_orb,dmatches_orb,2);
-
+  matcher_l1->knnMatch(desc1_orb, desc2_orb, dmatches_orb, 2);
   matches2points_nndr(kpts1_orb,kpts2_orb,dmatches_orb,matches_orb,DRATIO);
 
   if (use_ransac == false)
-    compute_inliers_homography(matches_orb,inliers_orb,HG,MIN_H_ERROR);
+    compute_inliers_homography(matches_orb,inliers_orb, HG, MIN_H_ERROR);
   else
-    compute_inliers_ransac(matches_orb,inliers_orb,MIN_H_ERROR,false);
+    compute_inliers_ransac(matches_orb, inliers_orb, MIN_H_ERROR, false);
 
+  nkpts1_orb = kpts1_orb.size();
+  nkpts2_orb = kpts2_orb.size();
   nmatches_orb = matches_orb.size()/2;
   ninliers_orb = inliers_orb.size()/2;
   noutliers_orb = nmatches_orb-ninliers_orb;
@@ -179,12 +176,12 @@ int main(int argc, char *argv[]) {
   t2 = cv::getTickCount();
   torb = 1000.0*(t2-t1) / cv::getTickFrequency();
 
-  cvtColor(img1,img1_rgb_orb,CV_GRAY2BGR);
-  cvtColor(img2,img2_rgb_orb,CV_GRAY2BGR);
+  cvtColor(img1, img1_rgb_orb, cv::COLOR_GRAY2BGR);
+  cvtColor(img2, img2_rgb_orb, cv::COLOR_GRAY2BGR);
 
-  draw_keypoints(img1_rgb_orb,kpts1_orb);
-  draw_keypoints(img2_rgb_orb,kpts2_orb);
-  draw_inliers(img1_rgb_orb,img2_rgb_orb,img_com_orb,inliers_orb,0);
+  draw_keypoints(img1_rgb_orb, kpts1_orb);
+  draw_keypoints(img2_rgb_orb, kpts2_orb);
+  draw_inliers(img1_rgb_orb, img2_rgb_orb, img_com_orb, inliers_orb, 0);
 
   cout << "ORB Results" << endl;
   cout << "**************************************" << endl;
@@ -201,13 +198,14 @@ int main(int argc, char *argv[]) {
 
   // BRISK Features
   //*****************
+  brisk = cv::BRISK::create(BRISK_HTHRES, BRISK_NOCTAVES, 1.0f);
+
   t1 = cv::getTickCount();
 
-  dbrisk(img1, cv::noArray(), kpts1_brisk, desc1_brisk, false);
-  dbrisk(img2, cv::noArray(), kpts2_brisk, desc2_brisk, false);
+  brisk->detectAndCompute(img1, cv::noArray(), kpts1_brisk, desc1_brisk, false);
+  brisk->detectAndCompute(img2, cv::noArray(), kpts2_brisk, desc2_brisk, false);
 
   matcher_l1->knnMatch(desc1_brisk, desc2_brisk, dmatches_brisk, 2);
-
   matches2points_nndr(kpts1_brisk, kpts2_brisk, dmatches_brisk, matches_brisk, DRATIO);
 
   if (use_ransac == false)
@@ -225,12 +223,12 @@ int main(int argc, char *argv[]) {
   t2 = cv::getTickCount();
   tbrisk = 1000.0*(t2-t1) / cv::getTickFrequency();
 
-  cvtColor(img1,img1_rgb_brisk,CV_GRAY2BGR);
-  cvtColor(img2,img2_rgb_brisk,CV_GRAY2BGR);
+  cvtColor(img1, img1_rgb_brisk, cv::COLOR_GRAY2BGR);
+  cvtColor(img2, img2_rgb_brisk, cv::COLOR_GRAY2BGR);
 
-  draw_keypoints(img1_rgb_brisk,kpts1_brisk);
-  draw_keypoints(img2_rgb_brisk,kpts2_brisk);
-  draw_inliers(img1_rgb_brisk,img2_rgb_brisk,img_com_brisk,inliers_brisk,1);
+  draw_keypoints(img1_rgb_brisk, kpts1_brisk);
+  draw_keypoints(img2_rgb_brisk, kpts2_brisk);
+  draw_inliers(img1_rgb_brisk, img2_rgb_brisk, img_com_brisk, inliers_brisk, 1);
 
   cout << "BRISK Results" << endl;
   cout << "**************************************" << endl;
@@ -259,22 +257,18 @@ int main(int argc, char *argv[]) {
 
   evolution1.Create_Nonlinear_Scale_Space(img1_32);
   evolution1.Feature_Detection(kpts1_akaze);
-  evolution1.Compute_Descriptors(kpts1_akaze,desc1_akaze);
+  evolution1.Compute_Descriptors(kpts1_akaze, desc1_akaze);
 
   evolution2.Create_Nonlinear_Scale_Space(img2_32);
   evolution2.Feature_Detection(kpts2_akaze);
-  evolution2.Compute_Descriptors(kpts2_akaze,desc2_akaze);
+  evolution2.Compute_Descriptors(kpts2_akaze, desc2_akaze);
 
-  nkpts1_akaze = kpts1_akaze.size();
-  nkpts2_akaze = kpts2_akaze.size();
+  if (options.descriptor < MLDB_UPRIGHT)
+    matcher_l2->knnMatch(desc1_akaze, desc2_akaze, dmatches_akaze, 2);
 
-  if (options.descriptor < MLDB_UPRIGHT) {
-    matcher_l2->knnMatch(desc1_akaze,desc2_akaze,dmatches_akaze,2);
-  }
   // Binary descriptor, use Hamming distance
-  else {
-    matcher_l1->knnMatch(desc1_akaze,desc2_akaze,dmatches_akaze,2);
-  }
+  else
+    matcher_l1->knnMatch(desc1_akaze, desc2_akaze, dmatches_akaze, 2);
 
   matches2points_nndr(kpts1_akaze,kpts2_akaze,dmatches_akaze,matches_akaze,DRATIO);
 
@@ -286,17 +280,19 @@ int main(int argc, char *argv[]) {
   t2 = cv::getTickCount();
   takaze = 1000.0*(t2-t1)/cv::getTickFrequency();
 
+  nkpts1_akaze = kpts1_akaze.size();
+  nkpts2_akaze = kpts2_akaze.size();
   nmatches_akaze = matches_akaze.size()/2;
   ninliers_akaze = inliers_akaze.size()/2;
   noutliers_akaze = nmatches_akaze-ninliers_akaze;
   ratio_akaze = 100.0*((float) ninliers_akaze / (float) nmatches_akaze);
 
-  cvtColor(img1,img1_rgb_akaze,CV_GRAY2BGR);
-  cvtColor(img2,img2_rgb_akaze,CV_GRAY2BGR);
+  cvtColor(img1,img1_rgb_akaze, cv::COLOR_GRAY2BGR);
+  cvtColor(img2,img2_rgb_akaze, cv::COLOR_GRAY2BGR);
 
-  draw_keypoints(img1_rgb_akaze,kpts1_akaze);
-  draw_keypoints(img2_rgb_akaze,kpts2_akaze);
-  draw_inliers(img1_rgb_akaze,img2_rgb_akaze,img_com_akaze,inliers_akaze,2);
+  draw_keypoints(img1_rgb_akaze, kpts1_akaze);
+  draw_keypoints(img2_rgb_akaze, kpts2_akaze);
+  draw_inliers(img1_rgb_akaze, img2_rgb_akaze, img_com_akaze, inliers_akaze, 2);
 
   cout << "A-KAZE Results" << endl;
   cout << "**************************************" << endl;
