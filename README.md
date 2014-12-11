@@ -1,12 +1,16 @@
 ## README - A-KAZE Features
 
-Version: 1.4.0
-Date: 07-10-2014
+Version: 1.5.0
+Date: 11-12-2014
 
 You can get the latest version of the code from github:
 `https://github.com/pablofdezalc/akaze`
 
 ## CHANGELOG
+Version: 1.5.0
+Changes:
+- The code has been changed for compatibility with OpenCV 3.0
+
 Version: 1.4.0
 Changes:
 - Maximum number of OpenMP threads can be set with OMP_MAX_THREADS definition in AKAZEConfig.h. By default is set to 16. This avoid problems with some systems that have many cores. Thanks to Thomas Fraenz
@@ -174,12 +178,12 @@ the following results:
 ```
 Number of Keypoints Image 1: 1823
 Number of Keypoints Image 2: 2373
-A-KAZE Features Extraction Time (ms): 304.796
-Matching Descriptors Time (ms): 54.1619
+A-KAZE Features Extraction Time (ms): 411.231
+Matching Descriptors Time (ms): 19.5631
 Number of Matches: 1283
-Number of Inliers: 1047
-Number of Outliers: 236
-Inliers Ratio: 81.6056
+Number of Inliers: 1136
+Number of Outliers: 147
+Inliers Ratio: 88.5425
 ```
 
 ## Image Matching Comparison between A-KAZE, ORB and BRISK (OpenCV)
@@ -206,33 +210,33 @@ For example, running kaze_compare with the first and third images from the boat 
 ```
 ORB Results
 **************************************
-Number of Keypoints Image 1: 1510
-Number of Keypoints Image 2: 1516
-Number of Matches: 304
-Number of Inliers: 277
-Number of Outliers: 27
-Inliers Ratio: 91.1184
-ORB Features Extraction Time (ms): 62.7292
+Number of Keypoints Image 1: 1511
+Number of Keypoints Image 2: 1517
+Number of Matches: 489
+Number of Inliers: 469
+Number of Outliers: 20
+Inliers Ratio: 95.91
+ORB Features Extraction Time (ms): 272.932
 
 BRISK Results
 **************************************
-Number of Keypoints Image 1: 3457
-Number of Keypoints Image 2: 3031
-Number of Matches: 159
+Number of Keypoints Image 1: 3449
+Number of Keypoints Image 2: 3028
+Number of Matches: 158
 Number of Inliers: 116
-Number of Outliers: 43
-Inliers Ratio: 72.956
-BRISK Features Extraction Time (ms): 311.954
+Number of Outliers: 42
+Inliers Ratio: 73.4177
+BRISK Features Extraction Time (ms): 188.407
 
 A-KAZE Results
 **************************************
 Number of Keypoints Image 1: 2129
 Number of Keypoints Image 2: 1668
-Number of Matches: 766
+Number of Matches: 764
 Number of Inliers: 688
-Number of Outliers: 78
-Inliers Ratio: 89.8172
-A-KAZE Features Extraction Time (ms): 519.336
+Number of Outliers: 76
+Inliers Ratio: 90.0524
+A-KAZE Features Extraction Time (ms): 292.35
 ```
 
 **A-KAZE features** is **open source** and you can use that **freely even in commercial applications**. The code is released under BSD license.
