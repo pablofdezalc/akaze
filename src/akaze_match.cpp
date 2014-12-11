@@ -19,7 +19,7 @@
  * @author Pablo F. Alcantarilla
  */
 
-#include "AKAZE.h"
+#include "./lib/AKAZE.h"
 
 // OpenCV
 #include <opencv2/imgproc/imgproc.hpp>
@@ -112,21 +112,13 @@ int main(int argc, char *argv[]) {
   evolution1.Feature_Detection(kpts1);
   evolution1.Compute_Descriptors(kpts1, desc1);
 
-
-
   evolution2.Create_Nonlinear_Scale_Space(img2_32);
   evolution2.Feature_Detection(kpts2);
   evolution2.Compute_Descriptors(kpts2, desc2);
 
-  //t2 = cv::getTickCount();
-  //takaze = 1000.0*(t2-t1)/cv::getTickFrequency();
-
-  nkpts1 = kpts1.size();
-  nkpts2 = kpts2.size();
-
-
   t2 = cv::getTickCount();
   takaze = 1000.0*(t2-t1)/cv::getTickFrequency();
+
   // Matching Descriptors!!
   vector<cv::Point2f> matches, inliers;
   cv::Ptr<cv::DescriptorMatcher> matcher_l2 = cv::DescriptorMatcher::create("BruteForce");
@@ -151,6 +143,8 @@ int main(int argc, char *argv[]) {
     compute_inliers_ransac(matches, inliers, MIN_H_ERROR, false);
 
   // Compute the inliers statistics
+  nkpts1 = kpts1.size();
+  nkpts2 = kpts2.size();
   nmatches = matches.size()/2;
   ninliers = inliers.size()/2;
   noutliers = nmatches - ninliers;

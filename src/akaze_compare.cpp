@@ -20,7 +20,7 @@
  * @author Pablo F. Alcantarilla
  */
 
-#include "AKAZE.h"
+#include "./lib/AKAZE.h"
 
 // OpenCV
 #include <opencv2/features2d/features2d.hpp>

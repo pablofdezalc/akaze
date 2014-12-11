@@ -20,7 +20,7 @@
  * @author Pablo F. Alcantarilla, Jesus Nuevo
  */
 
-#include "AKAZE.h"
+#include "./lib/AKAZE.h"
 
 // OpenCV
 #include <opencv2/imgproc/imgproc.hpp>
