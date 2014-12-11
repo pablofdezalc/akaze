@@ -88,7 +88,7 @@ struct AKAZEOptions {
     derivative_factor = 1.5f;
     omax = 4;
     nsublevels = 4;
-    dthreshold = 0.001f;
+    dthreshold = 0.0002f;
     min_dthreshold = 0.00001f;
 
     diffusivity = PM_G2;

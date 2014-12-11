@@ -196,7 +196,7 @@ void AKAZE::Compute_Multiscale_Derivatives() {
 #pragma omp parallel for
 #endif
 
-  for (int i = 0; i < (int)(evolution_.size()); i++) {
+  for (size_t i = 0; i < evolution_.size(); i++) {
 
     float ratio = pow(2.0f,(float)evolution_[i].octave);
     int sigma_size_ = fRound(evolution_[i].esigma*options_.derivative_factor/ratio);
@@ -206,12 +206,6 @@ void AKAZE::Compute_Multiscale_Derivatives() {
     compute_scharr_derivatives(evolution_[i].Lx, evolution_[i].Lxx, 1, 0, sigma_size_);
     compute_scharr_derivatives(evolution_[i].Ly, evolution_[i].Lyy, 0, 1, sigma_size_);
     compute_scharr_derivatives(evolution_[i].Lx, evolution_[i].Lxy, 0, 1, sigma_size_);
-
-    evolution_[i].Lx = evolution_[i].Lx*((sigma_size_));
-    evolution_[i].Ly = evolution_[i].Ly*((sigma_size_));
-    evolution_[i].Lxx = evolution_[i].Lxx*((sigma_size_)*(sigma_size_));
-    evolution_[i].Lxy = evolution_[i].Lxy*((sigma_size_)*(sigma_size_));
-    evolution_[i].Lyy = evolution_[i].Lyy*((sigma_size_)*(sigma_size_));
   }
 
   t2 = cv::getTickCount();
@@ -225,9 +219,12 @@ void AKAZE::Compute_Determinant_Hessian_Response() {
   Compute_Multiscale_Derivatives();
 
   for (size_t i = 0; i < evolution_.size(); i++) {
-    if (options_.verbosity == true) {
+
+    if (options_.verbosity == true)
       cout << "Computing detector response. Determinant of Hessian. Evolution time: " << evolution_[i].etime << endl;
-    }
+
+    float ratio = pow(2.0f,(float)evolution_[i].octave);
+    int sigma_size_ = fRound(evolution_[i].esigma*options_.derivative_factor/ratio);
 
     for (int ix = 0; ix < evolution_[i].Ldet.rows; ix++) {
       const float* lxx = evolution_[i].Lxx.ptr<float>(ix);
@@ -235,7 +232,7 @@ void AKAZE::Compute_Determinant_Hessian_Response() {
       const float* lyy = evolution_[i].Lyy.ptr<float>(ix);
       float* ldet = evolution_[i].Ldet.ptr<float>(ix);
       for (int jx = 0; jx < evolution_[i].Ldet.cols; jx++)
-        ldet[jx] = lxx[jx]*lyy[jx]-lxy[jx]*lxy[jx];
+        ldet[jx] = (sigma_size_)*(sigma_size_)*(lxx[jx]*lyy[jx]-lxy[jx]*lxy[jx]);
     }
   }
 }
