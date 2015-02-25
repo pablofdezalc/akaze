@@ -20,6 +20,7 @@
  */
 
 #include "nldiffusion_functions.h"
+#include <opencv2/imgproc/imgproc.hpp>
 
 using namespace std;
 

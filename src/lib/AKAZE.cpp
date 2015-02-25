@@ -21,6 +21,7 @@
  */
 
 #include "AKAZE.h"
+#include <opencv2/highgui/highgui.hpp>
 
 using namespace std;
 using namespace libAKAZE;
