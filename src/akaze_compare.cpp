@@ -25,6 +25,7 @@
 // OpenCV
 #include <opencv2/features2d/features2d.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
 
 using namespace std;
 
@@ -68,7 +69,6 @@ int main(int argc, char *argv[]) {
   double t1 = 0.0, t2 = 0.0;
 
   // ORB variables
-  cv::Ptr<cv::ORB> orb;
   vector<cv::KeyPoint> kpts1_orb, kpts2_orb;
   vector<cv::Point2f> matches_orb, inliers_orb;
   vector<vector<cv::DMatch> > dmatches_orb;
@@ -79,7 +79,6 @@ int main(int argc, char *argv[]) {
   double torb = 0.0;
 
   // BRISK variables
-  cv::Ptr<cv::BRISK> brisk;
   vector<cv::KeyPoint> kpts1_brisk, kpts2_brisk;
   vector<cv::Point2f> matches_brisk, inliers_brisk;
   vector<vector<cv::DMatch> > dmatches_brisk;
@@ -150,13 +149,22 @@ int main(int argc, char *argv[]) {
 
   // ORB Features
   //*****************
-  orb = cv::ORB::create(ORB_MAX_KPTS, ORB_SCALE_FACTOR, ORB_PYRAMID_LEVELS,
-                        ORB_EDGE_THRESHOLD, ORB_FIRST_PYRAMID_LEVEL, ORB_WTA_K, ORB_PATCH_SIZE);
+#if CV_VERSION_EPOCH == 2
+  cv::ORB orb(ORB_MAX_KPTS, ORB_SCALE_FACTOR, ORB_PYRAMID_LEVELS,
+#else
+  cv::Ptr<cv::ORB> orb = cv::ORB::create(ORB_MAX_KPTS, ORB_SCALE_FACTOR, ORB_PYRAMID_LEVELS,
+#endif
+    ORB_EDGE_THRESHOLD, ORB_FIRST_PYRAMID_LEVEL, ORB_WTA_K, ORB_PATCH_SIZE);
 
   t1 = cv::getTickCount();
 
+#if CV_VERSION_EPOCH == 2
+  orb(img1, cv::noArray(), kpts1_orb, desc1_orb, false);
+  orb(img2, cv::noArray(), kpts2_orb, desc2_orb, false);
+#else
   orb->detectAndCompute(img1, cv::noArray(), kpts1_orb, desc1_orb, false);
   orb->detectAndCompute(img2, cv::noArray(), kpts2_orb, desc2_orb, false);
+#endif
 
   matcher_l1->knnMatch(desc1_orb, desc2_orb, dmatches_orb, 2);
   matches2points_nndr(kpts1_orb,kpts2_orb,dmatches_orb,matches_orb,DRATIO);
@@ -198,12 +206,22 @@ int main(int argc, char *argv[]) {
 
   // BRISK Features
   //*****************
-  brisk = cv::BRISK::create(BRISK_HTHRES, BRISK_NOCTAVES, 1.0f);
+#if CV_VERSION_EPOCH == 2
+  cv::BRISK brisk(BRISK_HTHRES, BRISK_NOCTAVES, 1.0f);
+#else
+  cv::Ptr<cv::BRISK> brisk = cv::BRISK::create(BRISK_HTHRES, BRISK_NOCTAVES, 1.0f);
+#endif
 
   t1 = cv::getTickCount();
 
+#if CV_VERSION_EPOCH == 2
+  brisk(img1, cv::noArray(), kpts1_brisk, desc1_brisk, false);
+  brisk(img2, cv::noArray(), kpts2_brisk, desc2_brisk, false);
+#else
   brisk->detectAndCompute(img1, cv::noArray(), kpts1_brisk, desc1_brisk, false);
   brisk->detectAndCompute(img2, cv::noArray(), kpts2_brisk, desc2_brisk, false);
+#endif
+
 
   matcher_l1->knnMatch(desc1_brisk, desc2_brisk, dmatches_brisk, 2);
   matches2points_nndr(kpts1_brisk, kpts2_brisk, dmatches_brisk, matches_brisk, DRATIO);
