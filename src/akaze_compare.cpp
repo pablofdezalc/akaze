@@ -149,13 +149,22 @@ int main(int argc, char *argv[]) {
 
   // ORB Features
   //*****************
+#if CV_VERSION_EPOCH == 2
   cv::ORB orb(ORB_MAX_KPTS, ORB_SCALE_FACTOR, ORB_PYRAMID_LEVELS,
-                        ORB_EDGE_THRESHOLD, ORB_FIRST_PYRAMID_LEVEL, ORB_WTA_K, ORB_PATCH_SIZE);
+#else
+  cv::Ptr<cv::ORB> orb = cv::ORB::create(ORB_MAX_KPTS, ORB_SCALE_FACTOR, ORB_PYRAMID_LEVELS,
+#endif
+    ORB_EDGE_THRESHOLD, ORB_FIRST_PYRAMID_LEVEL, ORB_WTA_K, ORB_PATCH_SIZE);
 
   t1 = cv::getTickCount();
 
+#if CV_VERSION_EPOCH == 2
   orb(img1, cv::noArray(), kpts1_orb, desc1_orb, false);
   orb(img2, cv::noArray(), kpts2_orb, desc2_orb, false);
+#else
+  orb->detectAndCompute(img1, cv::noArray(), kpts1_orb, desc1_orb, false);
+  orb->detectAndCompute(img2, cv::noArray(), kpts2_orb, desc2_orb, false);
+#endif
 
   matcher_l1->knnMatch(desc1_orb, desc2_orb, dmatches_orb, 2);
   matches2points_nndr(kpts1_orb,kpts2_orb,dmatches_orb,matches_orb,DRATIO);
@@ -197,12 +206,22 @@ int main(int argc, char *argv[]) {
 
   // BRISK Features
   //*****************
+#if CV_VERSION_EPOCH == 2
   cv::BRISK brisk(BRISK_HTHRES, BRISK_NOCTAVES, 1.0f);
+#else
+  cv::Ptr<cv::BRISK> brisk = cv::BRISK::create(BRISK_HTHRES, BRISK_NOCTAVES, 1.0f);
+#endif
 
   t1 = cv::getTickCount();
 
+#if CV_VERSION_EPOCH == 2
   brisk(img1, cv::noArray(), kpts1_brisk, desc1_brisk, false);
   brisk(img2, cv::noArray(), kpts2_brisk, desc2_brisk, false);
+#else
+  brisk->detectAndCompute(img1, cv::noArray(), kpts1_brisk, desc1_brisk, false);
+  brisk->detectAndCompute(img2, cv::noArray(), kpts2_brisk, desc2_brisk, false);
+#endif
+
 
   matcher_l1->knnMatch(desc1_brisk, desc2_brisk, dmatches_brisk, 2);
   matches2points_nndr(kpts1_brisk, kpts2_brisk, dmatches_brisk, matches_brisk, DRATIO);
