@@ -332,14 +332,14 @@ void AKAZE::Find_Scale_Space_Extrema(std::vector<cv::KeyPoint>& kpts) {
 
             if (is_out == false) {
               if (is_repeated == false) {
-                point.pt.x *= ratio;
-                point.pt.y *= ratio;
+                point.pt.x = point.pt.x*ratio + .5*(ratio-1.0);
+                point.pt.y = point.pt.y*ratio + .5*(ratio-1.0);
                 kpts_aux.push_back(point);
                 npoints++;
               }
               else {
-                point.pt.x *= ratio;
-                point.pt.y *= ratio;
+                point.pt.x = point.pt.x*ratio + .5*(ratio-1.0);
+                point.pt.y = point.pt.y*ratio + .5*(ratio-1.0);
                 kpts_aux[id_repeated] = point;
               }
             } // if is_out
