@@ -154,7 +154,7 @@ int main(int argc, char *argv[]) {
 #else
   cv::Ptr<cv::ORB> orb = cv::ORB::create(ORB_MAX_KPTS, ORB_SCALE_FACTOR, ORB_PYRAMID_LEVELS,
 #endif
-    ORB_EDGE_THRESHOLD, ORB_FIRST_PYRAMID_LEVEL, ORB_WTA_K, ORB_PATCH_SIZE);
+    ORB_EDGE_THRESHOLD, ORB_FIRST_PYRAMID_LEVEL, ORB_WTA_K, cv::ORB::HARRIS_SCORE, ORB_PATCH_SIZE);
 
   t1 = cv::getTickCount();
 
