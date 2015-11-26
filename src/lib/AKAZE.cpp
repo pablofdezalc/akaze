@@ -430,8 +430,8 @@ void AKAZE::Do_Subpixel_Refinement(std::vector<cv::KeyPoint>& kpts) {
       kpts[i].pt.x = x + dst(0);
       kpts[i].pt.y = y + dst(1);
       int power = powf(2, evolution_[kpts[i].class_id].octave);
-      kpts[i].pt.x *= power;
-      kpts[i].pt.y *= power;
+      kpts[i].pt.x = kpts[i].pt.x*power + .5*(power-1);
+      kpts[i].pt.y = kpts[i].pt.y*power + .5*(power-1);
       kpts[i].angle = 0.0;
 
       // In OpenCV the size of a keypoint its the diameter
