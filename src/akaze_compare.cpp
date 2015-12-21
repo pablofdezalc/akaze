@@ -1,9 +1,8 @@
 //=============================================================================
 //
 // akaze_compare.cpp
-// Authors: Pablo F. Alcantarilla (1), Jesus Nuevo (2)
-// Institutions: Toshiba Research Europe Ltd (1)
-//               TrueVision Solutions (2)
+// Authors: Pablo F. Alcantarilla, Jesus Nuevo (2)
+// Institutions: TrueVision Solutions (2)
 // Date: 07/10/2014
 // Email: pablofdezalc@gmail.com
 //
@@ -23,9 +22,9 @@
 #include "./lib/AKAZE.h"
 
 // OpenCV
-#include <opencv2/features2d/features2d.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/features2d.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/highgui.hpp>
 
 using namespace std;
 
@@ -146,7 +145,6 @@ int main(int argc, char *argv[]) {
     use_ransac = true;
 
   /* ************************************************************************* */
-
   // ORB Features
   //*****************
 #if CV_VERSION_EPOCH == 2
@@ -184,26 +182,27 @@ int main(int argc, char *argv[]) {
   t2 = cv::getTickCount();
   torb = 1000.0*(t2-t1) / cv::getTickFrequency();
 
-  cvtColor(img1, img1_rgb_orb, cv::COLOR_GRAY2BGR);
-  cvtColor(img2, img2_rgb_orb, cv::COLOR_GRAY2BGR);
+  if (options.show_results == true) {
+    cvtColor(img1, img1_rgb_orb, cv::COLOR_GRAY2BGR);
+    cvtColor(img2, img2_rgb_orb, cv::COLOR_GRAY2BGR);
 
-  draw_keypoints(img1_rgb_orb, kpts1_orb);
-  draw_keypoints(img2_rgb_orb, kpts2_orb);
-  draw_inliers(img1_rgb_orb, img2_rgb_orb, img_com_orb, inliers_orb, 0);
+    draw_keypoints(img1_rgb_orb, kpts1_orb);
+    draw_keypoints(img2_rgb_orb, kpts2_orb);
+    draw_inliers(img1_rgb_orb, img2_rgb_orb, img_com_orb, inliers_orb, 0);
 
-  cout << "ORB Results" << endl;
-  cout << "**************************************" << endl;
-  cout << "Number of Keypoints Image 1: " << nkpts1_orb << endl;
-  cout << "Number of Keypoints Image 2: " << nkpts2_orb << endl;
-  cout << "Number of Matches: " << nmatches_orb << endl;
-  cout << "Number of Inliers: " << ninliers_orb << endl;
-  cout << "Number of Outliers: " << noutliers_orb << endl;
-  cout << "Inliers Ratio: " << ratio_orb << endl;
-  cout << "ORB Features Extraction Time (ms): " << torb << endl;
-  cout << endl;
+    cout << "ORB Results" << endl;
+    cout << "**************************************" << endl;
+    cout << "Number of Keypoints Image 1: " << nkpts1_orb << endl;
+    cout << "Number of Keypoints Image 2: " << nkpts2_orb << endl;
+    cout << "Number of Matches: " << nmatches_orb << endl;
+    cout << "Number of Inliers: " << ninliers_orb << endl;
+    cout << "Number of Outliers: " << noutliers_orb << endl;
+    cout << "Inliers Ratio: " << ratio_orb << endl;
+    cout << "ORB Features Extraction Time (ms): " << torb << endl;
+    cout << endl;
+  }
 
   /* ************************************************************************* */
-
   // BRISK Features
   //*****************
 #if CV_VERSION_EPOCH == 2
@@ -221,7 +220,6 @@ int main(int argc, char *argv[]) {
   brisk->detectAndCompute(img1, cv::noArray(), kpts1_brisk, desc1_brisk, false);
   brisk->detectAndCompute(img2, cv::noArray(), kpts2_brisk, desc2_brisk, false);
 #endif
-
 
   matcher_l1->knnMatch(desc1_brisk, desc2_brisk, dmatches_brisk, 2);
   matches2points_nndr(kpts1_brisk, kpts2_brisk, dmatches_brisk, matches_brisk, DRATIO);
@@ -241,26 +239,27 @@ int main(int argc, char *argv[]) {
   t2 = cv::getTickCount();
   tbrisk = 1000.0*(t2-t1) / cv::getTickFrequency();
 
-  cvtColor(img1, img1_rgb_brisk, cv::COLOR_GRAY2BGR);
-  cvtColor(img2, img2_rgb_brisk, cv::COLOR_GRAY2BGR);
+  if (options.show_results == true) {
+    cvtColor(img1, img1_rgb_brisk, cv::COLOR_GRAY2BGR);
+    cvtColor(img2, img2_rgb_brisk, cv::COLOR_GRAY2BGR);
 
-  draw_keypoints(img1_rgb_brisk, kpts1_brisk);
-  draw_keypoints(img2_rgb_brisk, kpts2_brisk);
-  draw_inliers(img1_rgb_brisk, img2_rgb_brisk, img_com_brisk, inliers_brisk, 1);
+    draw_keypoints(img1_rgb_brisk, kpts1_brisk);
+    draw_keypoints(img2_rgb_brisk, kpts2_brisk);
+    draw_inliers(img1_rgb_brisk, img2_rgb_brisk, img_com_brisk, inliers_brisk, 1);
 
-  cout << "BRISK Results" << endl;
-  cout << "**************************************" << endl;
-  cout << "Number of Keypoints Image 1: " << nkpts1_brisk << endl;
-  cout << "Number of Keypoints Image 2: " << nkpts2_brisk << endl;
-  cout << "Number of Matches: " << nmatches_brisk << endl;
-  cout << "Number of Inliers: " << ninliers_brisk << endl;
-  cout << "Number of Outliers: " << noutliers_brisk << endl;
-  cout << "Inliers Ratio: " << ratio_brisk << endl;
-  cout << "BRISK Features Extraction Time (ms): " << tbrisk << endl;
-  cout << endl;
+    cout << "BRISK Results" << endl;
+    cout << "**************************************" << endl;
+    cout << "Number of Keypoints Image 1: " << nkpts1_brisk << endl;
+    cout << "Number of Keypoints Image 2: " << nkpts2_brisk << endl;
+    cout << "Number of Matches: " << nmatches_brisk << endl;
+    cout << "Number of Inliers: " << ninliers_brisk << endl;
+    cout << "Number of Outliers: " << noutliers_brisk << endl;
+    cout << "Inliers Ratio: " << ratio_brisk << endl;
+    cout << "BRISK Features Extraction Time (ms): " << tbrisk << endl;
+    cout << endl;
+  }
 
   /* ************************************************************************* */
-
   // A-KAZE Features
   //*******************
   options.img_width = img1.cols;
@@ -305,29 +304,31 @@ int main(int argc, char *argv[]) {
   noutliers_akaze = nmatches_akaze-ninliers_akaze;
   ratio_akaze = 100.0*((float) ninliers_akaze / (float) nmatches_akaze);
 
-  cvtColor(img1,img1_rgb_akaze, cv::COLOR_GRAY2BGR);
-  cvtColor(img2,img2_rgb_akaze, cv::COLOR_GRAY2BGR);
+  if (options.show_results == true) {
+    cvtColor(img1,img1_rgb_akaze, cv::COLOR_GRAY2BGR);
+    cvtColor(img2,img2_rgb_akaze, cv::COLOR_GRAY2BGR);
 
-  draw_keypoints(img1_rgb_akaze, kpts1_akaze);
-  draw_keypoints(img2_rgb_akaze, kpts2_akaze);
-  draw_inliers(img1_rgb_akaze, img2_rgb_akaze, img_com_akaze, inliers_akaze, 2);
+    draw_keypoints(img1_rgb_akaze, kpts1_akaze);
+    draw_keypoints(img2_rgb_akaze, kpts2_akaze);
+    draw_inliers(img1_rgb_akaze, img2_rgb_akaze, img_com_akaze, inliers_akaze, 2);
 
-  cout << "A-KAZE Results" << endl;
-  cout << "**************************************" << endl;
-  cout << "Number of Keypoints Image 1: " << nkpts1_akaze << endl;
-  cout << "Number of Keypoints Image 2: " << nkpts2_akaze << endl;
-  cout << "Number of Matches: " << nmatches_akaze << endl;
-  cout << "Number of Inliers: " << ninliers_akaze << endl;
-  cout << "Number of Outliers: " << noutliers_akaze << endl;
-  cout << "Inliers Ratio: " << ratio_akaze << endl;
-  cout << "A-KAZE Features Extraction Time (ms): " << takaze << endl;
-  cout << endl;
+    cout << "A-KAZE Results" << endl;
+    cout << "**************************************" << endl;
+    cout << "Number of Keypoints Image 1: " << nkpts1_akaze << endl;
+    cout << "Number of Keypoints Image 2: " << nkpts2_akaze << endl;
+    cout << "Number of Matches: " << nmatches_akaze << endl;
+    cout << "Number of Inliers: " << ninliers_akaze << endl;
+    cout << "Number of Outliers: " << noutliers_akaze << endl;
+    cout << "Inliers Ratio: " << ratio_akaze << endl;
+    cout << "A-KAZE Features Extraction Time (ms): " << takaze << endl;
+    cout << endl;
 
-  // Show the images with the inliers
-  cv::imshow("ORB",img_com_orb);
-  cv::imshow("BRISK",img_com_brisk);
-  cv::imshow("A-KAZE",img_com_akaze);
-  cv::waitKey(0);
+    // Show the images with the inliers
+    cv::imshow("ORB",img_com_orb);
+    cv::imshow("BRISK",img_com_brisk);
+    cv::imshow("A-KAZE",img_com_akaze);
+    cv::waitKey(0);
+  }
 }
 
 /* ************************************************************************* */
@@ -455,6 +456,16 @@ int parse_input_options(AKAZEOptions& options, std::string& img_path1, std::stri
           if (options.descriptor_size < 0) {
             options.descriptor_size = 0;
           }
+        }
+      }
+      else if (!strcmp(argv[i],"--show_results")) {
+        i = i+1;
+        if (i >= argc) {
+          cerr << "Error introducing input options!!" << endl;
+          return -1;
+        }
+        else {
+          options.show_results = (bool)atoi(argv[i]);
         }
       }
       else if (!strcmp(argv[i],"--verbose")) {

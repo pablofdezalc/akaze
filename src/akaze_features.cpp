@@ -89,25 +89,27 @@ int main(int argc, char *argv[]) {
   t2 = cv::getTickCount();
   tdesc = 1000.0*(t2-t1) / cv::getTickFrequency();
 
-  // Summarize the computation times.
-  evolution.Show_Computation_Times();
+  if (options.show_results == true) {
 
-  cout << "Number of points: " << kpts.size() << endl;
-  cout << "Time Detector: " << tdet << " ms" << endl;
-  cout << "Time Descriptor: " << tdesc << " ms" << endl;
+    // Summarize the computation times.
+    evolution.Show_Computation_Times();
+
+    cout << "Number of points: " << kpts.size() << endl;
+    cout << "Time Detector: " << tdet << " ms" << endl;
+    cout << "Time Descriptor: " << tdesc << " ms" << endl;
+
+    cv::Mat img_rgb = cv::Mat(cv::Size(img.cols, img.rows), CV_8UC3);
+    cvtColor(img,img_rgb, cv::COLOR_GRAY2BGR);
+    draw_keypoints(img_rgb, kpts);
+
+    cv::namedWindow("A-KAZE", cv::WINDOW_AUTOSIZE);
+    cv::imshow("A-KAZE", img_rgb);
+    cv::waitKey(0);
+  }
 
   // Save keypoints in ASCII format
   if (!kpts_path.empty())
     save_keypoints(kpts_path, kpts, desc, true);
-
-  // Check out the result visually
-  cv::Mat img_rgb = cv::Mat(cv::Size(img.cols, img.rows), CV_8UC3);
-  cvtColor(img,img_rgb, cv::COLOR_GRAY2BGR);
-  draw_keypoints(img_rgb, kpts);
-
-  cv::namedWindow("A-KAZE", cv::WINDOW_AUTOSIZE);
-  cv::imshow("A-KAZE", img_rgb);
-  cv::waitKey(0);
 }
 
 /* ************************************************************************* */
@@ -240,6 +242,16 @@ int parse_input_options(AKAZEOptions& options, std::string& img_path,
         }
         else {
           options.save_scale_space = (bool)atoi(argv[i]);
+        }
+      }
+      else if (!strcmp(argv[i],"--show_results")) {
+        i = i+1;
+        if (i >= argc) {
+          cerr << "Error introducing input options!!" << endl;
+          return -1;
+        }
+        else {
+          options.show_results = (bool)atoi(argv[i]);
         }
       }
       else if (!strcmp(argv[i],"--verbose")) {

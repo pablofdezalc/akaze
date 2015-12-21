@@ -1,9 +1,8 @@
 //=============================================================================
 //
 // akaze_match.cpp
-// Authors: Pablo F. Alcantarilla (1), Jesus Nuevo (2)
-// Institutions: Toshiba Research Europe Ltd (1)
-//               TrueVision Solutions (2)
+// Authors: Pablo F. Alcantarilla, Jesus Nuevo (2)
+// Institutions: TrueVision Solutions (2)
 // Date: 07/10/2014
 // Email: pablofdezalc@gmail.com
 //
@@ -22,8 +21,8 @@
 #include "./lib/AKAZE.h"
 
 // OpenCV
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/highgui.hpp>
 
 using namespace std;
 
@@ -151,26 +150,29 @@ int main(int argc, char *argv[]) {
   noutliers = nmatches - ninliers;
   ratio = 100.0*((float) ninliers / (float) nmatches);
 
-  // Prepare the visualization
-  cvtColor(img1, img1_rgb, cv::COLOR_GRAY2BGR);
-  cvtColor(img2, img2_rgb, cv::COLOR_GRAY2BGR);
+  if (options.show_results == true) {
 
-  // Show matching statistics
-  cout << "Number of Keypoints Image 1: " << nkpts1 << endl;
-  cout << "Number of Keypoints Image 2: " << nkpts2 << endl;
-  cout << "A-KAZE Features Extraction Time (ms): " << takaze << endl;
-  cout << "Matching Descriptors Time (ms): " << tmatch << endl;
-  cout << "Number of Matches: " << nmatches << endl;
-  cout << "Number of Inliers: " << ninliers << endl;
-  cout << "Number of Outliers: " << noutliers << endl;
-  cout << "Inliers Ratio: " << ratio << endl << endl;
+    // Prepare the visualization
+    cvtColor(img1, img1_rgb, cv::COLOR_GRAY2BGR);
+    cvtColor(img2, img2_rgb, cv::COLOR_GRAY2BGR);
 
-  draw_keypoints(img1_rgb, kpts1);
-  draw_keypoints(img2_rgb, kpts2);
-  draw_inliers(img1_rgb, img2_rgb, img_com, inliers);
-  cv::namedWindow("Inliers", cv::WINDOW_NORMAL);
-  cv::imshow("Inliers",img_com);
-  cv::waitKey(0);
+    // Show matching statistics
+    cout << "Number of Keypoints Image 1: " << nkpts1 << endl;
+    cout << "Number of Keypoints Image 2: " << nkpts2 << endl;
+    cout << "A-KAZE Features Extraction Time (ms): " << takaze << endl;
+    cout << "Matching Descriptors Time (ms): " << tmatch << endl;
+    cout << "Number of Matches: " << nmatches << endl;
+    cout << "Number of Inliers: " << ninliers << endl;
+    cout << "Number of Outliers: " << noutliers << endl;
+    cout << "Inliers Ratio: " << ratio << endl << endl;
+
+    draw_keypoints(img1_rgb, kpts1);
+    draw_keypoints(img2_rgb, kpts2);
+    draw_inliers(img1_rgb, img2_rgb, img_com, inliers);
+    cv::namedWindow("Inliers", cv::WINDOW_NORMAL);
+    cv::imshow("Inliers",img_com);
+    cv::waitKey(0);
+  }
 }
 
 /* ************************************************************************* */
@@ -301,6 +303,16 @@ int parse_input_options(AKAZEOptions& options, std::string& img_path1, std::stri
           if (options.descriptor_size < 0) {
             options.descriptor_size = 0;
           }
+        }
+      }
+      else if (!strcmp(argv[i],"--show_results")) {
+        i = i+1;
+        if (i >= argc) {
+          cerr << "Error introducing input options!!" << endl;
+          return -1;
+        }
+        else {
+          options.show_results = (bool)atoi(argv[i]);
         }
       }
       else if (!strcmp(argv[i],"--verbose")) {

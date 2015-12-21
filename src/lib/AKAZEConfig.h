@@ -131,6 +131,7 @@ struct AKAZEOptions {
 
   bool save_scale_space;          ///< Set to true for saving the scale space images
   bool save_keypoints;            ///< Set to true for saving the detected keypoints and descriptors
+  bool show_results;              ///< Set to true for displaying results
   bool verbosity;                 ///< Set to true for displaying verbosity information
 
   friend std::ostream& operator<<(std::ostream& os,

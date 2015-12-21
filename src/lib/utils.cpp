@@ -1,9 +1,8 @@
 //=============================================================================
 //
 // utils.cpp
-// Authors: Pablo F. Alcantarilla (1), Jesus Nuevo (2)
-// Institutions: Toshiba Research Europe Ltd (1)
-//               TrueVision Solutions (2)
+// Authors: Pablo F. Alcantarilla, Jesus Nuevo (2)
+// Institutions: TrueVision Solutions (2)
 //
 // Date: 07/10/2014
 // Email: pablofdezalc@gmail.com
@@ -23,8 +22,8 @@
 #include "utils.h"
 
 // OpenCV
-#include <opencv2/calib3d/calib3d.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/calib3d.hpp>
+#include <opencv2/imgproc.hpp>
 
 // System
 #include <fstream>
