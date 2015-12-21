@@ -104,6 +104,7 @@ struct AKAZEOptions {
 
     save_scale_space = false;
     save_keypoints = false;
+    show_results = true;
     verbosity = false;
   }
 
