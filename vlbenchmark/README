@@ -1,0 +1,23 @@
+The code in this folder is for A-KAZE evaluation in the VLBenchmarks.
+I assume you have Matlab installed in your computer. The next steps are:
+
+1. Download VLBenchmarks in your computer:
+http://www.vlfeat.org/benchmarks/
+
+2. Compile akaze_features and move the executable file to: 
+/vlfeat-vlbenchmarks/data/software/akaze/
+
+3. Copy the file AKAZE.m to:
+/vlfeat-vlbenchmarks/+localFeatures/
+
+4. Copy the file RepeatabilityBenchmarkMod.m to:
+/vlfeat-vlbenchmarks/+benchmarks/
+
+RepeatabilityBenchmarkMod contains some modifications with respect to the original 
+RepeatabilityBenchmark, such as checking pixel location error.
+
+5. Copy the script test_detector_bikes_akaze.m to:
+/vlfeat-vlbenchmarks/
+
+Run the script to evaluate A-KAZE in the bikes dataset. You can change the script for 
+evaluation in other datasets.
