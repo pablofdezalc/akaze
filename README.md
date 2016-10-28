@@ -6,6 +6,13 @@ Date: 11-12-2014
 You can get the latest version of the code from github:
 `https://github.com/pablofdezalc/akaze`
 
+## OTHER IMPLEMENTATIONS
+You can try the CUDA A-KAZE implementation from Niklas Bergström:
+`https://github.com/nbergst/akaze`
+
+There is also a very fast CPU A-KAZE version from Hideaki Suzuki
+`https://github.com/h2suzuki/fast_akaze`
+
 ## CHANGELOG
 Version: 1.5.0
 Changes:
