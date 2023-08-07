@@ -1155,8 +1155,8 @@ void AKAZE::MLDB_Fill_Upright_Values(float* values, int sample_step, int level,
               dx += sqrtf(rx*rx + ry*ry);
             }
             else {
-              dx += rx;
-              dy += ry;
+              dx += ry;
+              dy += rx;
             }
           }
           nsamples++;
