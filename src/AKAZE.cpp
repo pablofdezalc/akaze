@@ -20,7 +20,7 @@
  * @author Pablo F. Alcantarilla, Jesus Nuevo
  */
 
-#include "AKAZE.h"
+#include "akaze/AKAZE.h"
 #include <opencv2/highgui/highgui.hpp>
 
 using namespace std;

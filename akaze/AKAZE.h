@@ -9,10 +9,10 @@
 #pragma once
 
 /* ************************************************************************* */
-#include "AKAZEConfig.h"
-#include "fed.h"
-#include "utils.h"
-#include "nldiffusion_functions.h"
+#include "akaze/AKAZEConfig.h"
+#include "akaze/fed.h"
+#include "akaze/utils.h"
+#include "akaze/nldiffusion_functions.h"
 
 // OpenCV
 #include <opencv2/features2d/features2d.hpp>

@@ -19,7 +19,7 @@
  * @author Pablo F. Alcantarilla, Jesus Nuevo
  */
 
-#include "nldiffusion_functions.h"
+#include "akaze/nldiffusion_functions.h"
 #include <opencv2/imgproc/imgproc.hpp>
 
 using namespace std;

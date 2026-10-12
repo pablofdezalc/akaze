@@ -19,7 +19,7 @@
  * @author Pablo F. Alcantarilla, Jesus Nuevo
  */
 
-#include "utils.h"
+#include "akaze/utils.h"
 
 // OpenCV
 #include <opencv2/calib3d.hpp>

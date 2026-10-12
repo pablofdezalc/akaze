@@ -8,7 +8,7 @@
 #pragma once
 
 /* ************************************************************************* */
-#include <AKAZEConfig.h>
+#include <akaze/AKAZEConfig.h>
 
 /* ************************************************************************* */
 /// Convolve an image with a 2D Gaussian kernel
